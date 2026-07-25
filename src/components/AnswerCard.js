@@ -151,8 +151,10 @@ function ContinuationNode({
         </div>
         {!foldState[cont.id] && (
           <>
-            {cont.motivation && <div style={{ background: '#f3f4f6', padding: isMobile ? '6px 10px' : '8px 12px', borderRadius: 6, marginBottom: 8, fontSize: isMobile ? 13 : 14 }}
-              dangerouslySetInnerHTML={{ __html: `<span style="font-weight:600;color:#374151">动机：</span>${renderLatexToHTML(cont.motivation)}` }} />}
+            {cont.motivation && (
+              <div style={{ background: '#f3f4f6', padding: isMobile ? '6px 10px' : '8px 12px', borderRadius: 6, marginBottom: 8, fontSize: isMobile ? 13 : 14 }}
+                dangerouslySetInnerHTML={{ __html: renderLatexToHTML(cont.motivation) }} />
+            )}
             <div className="answer-text-container" data-node-id={nodeId}
               style={{ whiteSpace: 'pre-wrap', marginLeft: isMobile ? 4 : 8, marginBottom: 8, fontSize: isMobile ? '0.875rem' : 'inherit', touchAction: 'manipulation' }}
               dangerouslySetInnerHTML={{ __html: renderLatexToHTML(cont.content, cutAfterIdx) }}
@@ -285,22 +287,40 @@ export default function AnswerCard({ answers, currentPage, isLastPage, exerciseI
   const handleReply = (commentId, author) => { setReplyParentId(commentId); setReplyAuthor(author); setQuoteText(''); setShowCommentInput(true); };
   const handleDeleteExerciseComment = async (commentId) => { if (!currentAns) return; try { const res = await fetch(`/api/exercises/${exerciseId}/answers/${currentAns.id}/comments/${commentId}`, { method: 'DELETE' }); if (!res.ok) throw new Error((await res.json()).error); } catch (e) { throw e; } };
 
+  // 修复后的引用高亮逻辑
   const handleQuoteClick = useCallback((start, end) => {
     setFocusPath([]);
     const container = answerContainerRef.current;
     if (!container) return;
     const spans = container.querySelectorAll('.char-span, .math-formula');
     let firstSpan = null;
+
     spans.forEach(span => {
-      let idx, len;
-      if (span.classList.contains('math-formula')) { idx = parseInt(span.getAttribute('data-idx')); len = parseInt(span.getAttribute('data-length')); }
-      else { idx = parseInt(span.getAttribute('data-idx')); len = 1; }
-      if (isNaN(idx)) return;
-      const spanEnd = idx + (len || 1);
-      if (idx < end && spanEnd > start) { span.classList.add('highlight-quote'); if (!firstSpan) firstSpan = span; }
+      if (span.classList.contains('math-formula')) {
+        const idx = parseInt(span.getAttribute('data-idx'));
+        const len = parseInt(span.getAttribute('data-length'));
+        if (isNaN(idx) || isNaN(len)) return;
+        const spanEnd = idx + len;
+        if (idx < end && spanEnd > start) {
+          span.classList.add('highlight-quote');
+          if (!firstSpan) firstSpan = span;
+        }
+      } else {
+        const idx = parseInt(span.getAttribute('data-idx'));
+        if (isNaN(idx)) return;
+        if (idx >= start && idx < end) {
+          span.classList.add('highlight-quote');
+          if (!firstSpan) firstSpan = span;
+        }
+      }
     });
-    if (firstSpan) firstSpan.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    setTimeout(() => spans.forEach(s => s.classList.remove('highlight-quote')), 3000);
+
+    if (firstSpan) {
+      firstSpan.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    setTimeout(() => {
+      spans.forEach(s => s.classList.remove('highlight-quote'));
+    }, 3000);
   }, [setFocusPath]);
 
   const handleExerciseCommentSubmit = async ({ content, parentId, quoteText, quoteStart, quoteEnd }) => {
@@ -421,7 +441,9 @@ export default function AnswerCard({ answers, currentPage, isLastPage, exerciseI
           </div>
         </div>
         <div ref={answerTextRef} onContextMenu={handleContextMenu} onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd} style={{ touchAction: 'manipulation' }}>
-          {ans.overallThought && <div className="bg-gray-100 p-3 rounded mb-3" dangerouslySetInnerHTML={{ __html: `<strong>整体思路：</strong>${renderLatexToHTML(ans.overallThought)}` }} />}
+          {ans.overallThought && (
+            <div className="bg-gray-100 p-3 rounded mb-3" dangerouslySetInnerHTML={{ __html: renderLatexToHTML(ans.overallThought) }} />
+          )}
           <div className="answer-text-container" data-node-id={`answer-${ans.id}`} style={{ whiteSpace: 'pre-wrap', marginBottom: 12 }} dangerouslySetInnerHTML={{ __html: renderLatexToHTML(ans.content, answerCutAfterIdx) }} />
         </div>
         {touchMenu.visible && <div className="fixed z-50 bg-white border border-gray-300 rounded-md shadow-lg py-1 px-0" style={{ left: touchMenu.x, top: touchMenu.y, transform: 'translate(-50%, -100%)' }}>

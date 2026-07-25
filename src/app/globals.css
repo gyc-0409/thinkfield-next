@@ -106,3 +106,8 @@ body {
     min-width: 36px;
   }
 }
+.char-span.highlight-quote,
+.math-formula.highlight-quote {
+  background-color: #1a1a1a !important;
+  color: #fff !important;
+}

@@ -587,6 +587,18 @@ export default function AnswerCard({
     setShowCommentInput(true);
   };
 
+  const handleDeleteExerciseComment = async (commentId) => {
+    if (!currentAns) return;
+    try {
+      const res = await fetch(`/api/exercises/${exerciseId}/answers/${currentAns.id}/comments/${commentId}`, {
+        method: 'DELETE',
+      });
+      if (!res.ok) throw new Error((await res.json()).error);
+    } catch (e) {
+      throw e;
+    }
+  };
+
   // 点击引用文字定位并高亮（扩大查找范围到整个卡片）
   const handleQuoteClick = useCallback((start, end) => {
     // 退出所有聚焦
@@ -890,6 +902,7 @@ export default function AnswerCard({
               onQuoteClick={handleQuoteClick}
               onDelete={handleCommentPosted}
               currentUser={user}
+              deleteComment={handleDeleteExerciseComment}
             />
           </div>
         )}

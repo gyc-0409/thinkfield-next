@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { renderLatexToHTML } from '@/lib/renderLatex';
 
-export default function CommentTree({ comments, depth = 0, questionId, thoughtId, onReply, onQuoteClick, onDelete, currentUser }) {
+export default function CommentTree({ comments, depth = 0, questionId, thoughtId, onReply, onQuoteClick, onDelete, currentUser, deleteComment }) {
   if (!comments || comments.length === 0) return null;
 
   return (
@@ -18,13 +18,14 @@ export default function CommentTree({ comments, depth = 0, questionId, thoughtId
           onQuoteClick={onQuoteClick}
           onDelete={onDelete}
           currentUser={currentUser}
+          deleteComment={deleteComment}
         />
       ))}
     </div>
   );
 }
 
-function CommentItem({ comment, depth, questionId, thoughtId, onReply, onQuoteClick, onDelete, currentUser }) {
+function CommentItem({ comment, depth, questionId, thoughtId, onReply, onQuoteClick, onDelete, currentUser, deleteComment }) {
   const isDeleted = comment.author === '[已删除]';
   const [likes, setLikes] = useState(comment.likes || 0);
   const [liked, setLiked] = useState(isDeleted ? false : (comment.liked_by?.includes(currentUser) || false));
@@ -33,7 +34,6 @@ function CommentItem({ comment, depth, questionId, thoughtId, onReply, onQuoteCl
 
   const hasChildren = comment.children && comment.children.length > 0;
 
-  // 如果当前评论是已删除状态，且没有子评论，则不渲染（自动消失）
   if (isDeleted && !hasChildren) return null;
 
   const isAuthor = currentUser && comment.author === currentUser;
@@ -58,8 +58,13 @@ function CommentItem({ comment, depth, questionId, thoughtId, onReply, onQuoteCl
     if (!confirm('确定删除这条评论吗？')) return;
     setDeleting(true);
     try {
-      const res = await fetch(`/api/comments/${comment.id}`, { method: 'DELETE' });
-      if (!res.ok) throw new Error('删除失败');
+      if (deleteComment) {
+        await deleteComment(comment.id);
+      } else {
+        // 默认讨论评论删除
+        const res = await fetch(`/api/comments/${comment.id}`, { method: 'DELETE' });
+        if (!res.ok) throw new Error('删除失败');
+      }
       if (onDelete) onDelete(comment.id);
     } catch (e) {
       alert(e.message);
@@ -75,14 +80,12 @@ function CommentItem({ comment, depth, questionId, thoughtId, onReply, onQuoteCl
   };
 
   return (
-    <div style={{ marginLeft: depth * 12 }}>
-      <div className="group p-2.5 md:p-3 rounded border-2 border-gray-800 bg-gray-50 mb-2">
+    <div style={{ marginLeft: depth * 16 }}>
+      <div className="group p-3 rounded border-2 border-gray-800 bg-gray-50 mb-2">
         {isDeleted ? (
-          // 已删除显示
           <div className="text-sm text-gray-400 italic">此评论已被作者删除</div>
         ) : (
           <>
-            {/* 第一行：作者 + 回复 + 删除 */}
             <div className="flex items-center gap-2 text-sm text-gray-600 mb-1">
               <span className="font-bold">{comment.author}</span>
               <button
@@ -105,26 +108,19 @@ function CommentItem({ comment, depth, questionId, thoughtId, onReply, onQuoteCl
               )}
             </div>
 
-            {/* 引用文字 */}
             {comment.quote_text && (
               <div className="text-xs text-gray-500 mb-1">
                 <span
                   className="italic cursor-pointer hover:text-gray-700 transition-colors"
                   onClick={handleQuoteClick}
                 >
-                  引用：
-                  <span dangerouslySetInnerHTML={{ __html: renderLatexToHTML(comment.quote_text) }} />
+                  引用：{comment.quote_text.substring(0, 80)}
                 </span>
               </div>
             )}
 
-            {/* 评论内容 */}
-            <div
-              className="text-gray-800 whitespace-pre-wrap"
-              dangerouslySetInnerHTML={{ __html: renderLatexToHTML(comment.content) }}
-            />
+            <div className="text-gray-800 whitespace-pre-wrap">{comment.content}</div>
 
-            {/* 大拇指 */}
             <div className="mt-1 flex items-center gap-3 text-xs text-gray-500">
               <button
                 onClick={handleLike}
@@ -140,7 +136,6 @@ function CommentItem({ comment, depth, questionId, thoughtId, onReply, onQuoteCl
           </>
         )}
 
-        {/* 子评论（递归） */}
         {hasChildren && (
           <CommentTree
             comments={comment.children}
@@ -151,6 +146,7 @@ function CommentItem({ comment, depth, questionId, thoughtId, onReply, onQuoteCl
             onQuoteClick={onQuoteClick}
             onDelete={onDelete}
             currentUser={currentUser}
+            deleteComment={deleteComment}
           />
         )}
       </div>

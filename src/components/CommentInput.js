@@ -51,6 +51,9 @@ export default function CommentInput({
         if (onCommentPosted) onCommentPosted();
       }
       setContent('');
+      // 关闭引用/回复弹窗
+      if (onClearQuote) onClearQuote();
+      if (onClearReply) onClearReply();
     } catch (e) {
       alert(e.message);
     }
@@ -58,7 +61,7 @@ export default function CommentInput({
   };
 
   return (
-    <div className="mt-3 md:mt-4 pt-3 md:pt-4 border-t border-gray-200">
+    <div className="mt-4 pt-4 border-t border-gray-200">
       {replyingTo && (
         <div className="bg-gray-100 p-2 rounded mb-2 flex justify-between text-sm">
           <span>回复 <strong>{replyingTo}</strong></span>

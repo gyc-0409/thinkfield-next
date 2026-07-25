@@ -1,0 +1,108 @@
+@import "tailwindcss";
+@import 'katex/dist/katex.min.css';
+
+.katex { font-size: 1.05em; }
+body {
+  background-color: #f5f5f5;
+}
+/* 自定义滚动条容器 */
+.scroll-container {
+  overflow-y: auto;
+}
+
+.scroll-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scroll-container::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 3px;
+}
+
+.scroll-container:hover::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.scroll-container {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+
+.scroll-container:hover {
+  scrollbar-color: rgba(0, 0, 0, 0.25) transparent;
+}
+@keyframes slide-in {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+
+.animate-slide-in {
+  animation: slide-in 0.2s ease-out;
+}
+.char-span {
+  position: relative;
+  cursor: default;
+}
+.char-span::before {
+  content: '';
+  position: absolute;
+  left: -6px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: transparent;
+  transition: background 0.15s;
+  cursor: pointer;
+}
+.char-span:hover::before {
+  background: rgba(39, 174, 96, 0.3);
+}
+.char-span.cut-point::before {
+  background: #27ae60;
+  box-shadow: 0 0 4px rgba(39, 174, 96, 0.5);
+}
+.math-formula {
+  background-color: rgba(52, 152, 219, 0.08);
+  cursor: pointer;
+  padding: 1px 3px;
+  border-radius: 3px;
+  transition: background-color 0.2s;
+}
+.math-formula:hover {
+  background-color: rgba(52, 152, 219, 0.2);
+}
+.math-formula.cut-point::before {
+  content: '';
+  position: absolute;
+  left: -6px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #27ae60;
+  box-shadow: 0 0 4px rgba(39, 174, 96, 0.5);
+}
+.highlight-quote {
+  background-color: #1a1a1a !important;
+  color: #fff !important;
+  padding: 1px 3px;
+  border-radius: 2px;
+  transition: background-color 0.3s, color 0.3s;
+}
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(107, 114, 128, 0.5); }
+  50% { box-shadow: 0 0 0 5px rgba(107, 114, 128, 0.15); }
+}
+.btn-glow {
+  animation: pulse-glow 2s infinite;
+  border-radius: 6px;
+}
+@media (max-width: 767px) {
+  button, .btn-touch {
+    min-height: 36px;
+    min-width: 36px;
+  }
+}

@@ -15,14 +15,11 @@ export async function DELETE(request, { params }) {
     const comment = result.rows[0];
     if (comment.author !== user) return NextResponse.json({ error: '只能删除自己的评论' }, { status: 403 });
 
-    // 检查是否有子评论
     const children = await pool.query('SELECT id FROM exercise_comments WHERE parent_id = $1', [commentId]);
     if (children.rowCount > 0) {
-      // 软删除
       await pool.query("UPDATE exercise_comments SET content = '[已删除]', author = '[已删除]' WHERE id = $1", [commentId]);
     } else {
       await pool.query('DELETE FROM exercise_comments WHERE id = $1', [commentId]);
-      // 递归清理父评论空壳
       let parentId = comment.parent_id;
       while (parentId) {
         const parentRes = await pool.query('SELECT author, parent_id FROM exercise_comments WHERE id = $1', [parentId]);

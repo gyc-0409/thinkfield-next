@@ -192,6 +192,33 @@ function ContinuationNode({
     setTouchMenu({ visible: false, x: 0, y: 0, startIdx: null, endIdx: null, text: '' });
   };
 
+  // 桌面端右键引用
+  const handleContextMenu = (e) => {
+    if (isMobile) return;
+    if (!requireLogin()) return;
+    const formulaSpan = e.target.closest('.math-formula');
+    if (formulaSpan) {
+      e.preventDefault();
+      e.stopPropagation();
+      const formulaText = formulaSpan.getAttribute('data-formula');
+      const idx = parseInt(formulaSpan.getAttribute('data-idx'));
+      const len = parseInt(formulaSpan.getAttribute('data-length'));
+      if (!isNaN(idx) && len) {
+        onQuoteText && onQuoteText(formulaText, idx, idx + len);
+        return;
+      }
+    }
+    const selection = window.getSelection();
+    const selectedText = selection.toString().trim();
+    if (!selectedText) return;
+    e.preventDefault();
+    const fullText = cont.content;
+    const start = fullText.indexOf(selectedText);
+    if (start !== -1) {
+      onQuoteText && onQuoteText(selectedText, start, start + selectedText.length);
+    }
+  };
+
   if (!isVisible) return null;
 
   const showFocusBtn = hover || isFocused;
@@ -266,6 +293,7 @@ function ContinuationNode({
               onTouchStart={handleTouchStart}
               onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
+              onContextMenu={handleContextMenu}
             />
 
             {/* 移动端长按菜单 */}
@@ -468,6 +496,7 @@ export default function AnswerCard({
 
   // 桌面端右键引用
   const handleContextMenu = (e) => {
+    if (isMobile) return;
     if (!requireLogin()) return;
     const formulaSpan = e.target.closest('.math-formula');
     if (formulaSpan) {

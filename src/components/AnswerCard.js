@@ -287,7 +287,7 @@ export default function AnswerCard({ answers, currentPage, isLastPage, exerciseI
   const handleReply = (commentId, author) => { setReplyParentId(commentId); setReplyAuthor(author); setQuoteText(''); setShowCommentInput(true); };
   const handleDeleteExerciseComment = async (commentId) => { if (!currentAns) return; try { const res = await fetch(`/api/exercises/${exerciseId}/answers/${currentAns.id}/comments/${commentId}`, { method: 'DELETE' }); if (!res.ok) throw new Error((await res.json()).error); } catch (e) { throw e; } };
 
-  // 关键：使用内联样式高亮，确保万无一失
+  // 最终高亮逻辑：内联样式，直接操作 DOM
   const handleQuoteClick = useCallback((start, end) => {
     setFocusPath([]);
     const container = answerContainerRef.current;

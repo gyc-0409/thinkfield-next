@@ -287,7 +287,7 @@ export default function AnswerCard({ answers, currentPage, isLastPage, exerciseI
   const handleReply = (commentId, author) => { setReplyParentId(commentId); setReplyAuthor(author); setQuoteText(''); setShowCommentInput(true); };
   const handleDeleteExerciseComment = async (commentId) => { if (!currentAns) return; try { const res = await fetch(`/api/exercises/${exerciseId}/answers/${currentAns.id}/comments/${commentId}`, { method: 'DELETE' }); if (!res.ok) throw new Error((await res.json()).error); } catch (e) { throw e; } };
 
-  // 修复后的引用高亮逻辑
+  // 关键：使用内联样式高亮，确保万无一失
   const handleQuoteClick = useCallback((start, end) => {
     setFocusPath([]);
     const container = answerContainerRef.current;
@@ -302,14 +302,18 @@ export default function AnswerCard({ answers, currentPage, isLastPage, exerciseI
         if (isNaN(idx) || isNaN(len)) return;
         const spanEnd = idx + len;
         if (idx < end && spanEnd > start) {
-          span.classList.add('highlight-quote');
+          span.style.backgroundColor = '#1a1a1a';
+          span.style.color = '#fff';
+          span.style.transition = 'background-color 0.3s, color 0.3s';
           if (!firstSpan) firstSpan = span;
         }
       } else {
         const idx = parseInt(span.getAttribute('data-idx'));
         if (isNaN(idx)) return;
         if (idx >= start && idx < end) {
-          span.classList.add('highlight-quote');
+          span.style.backgroundColor = '#1a1a1a';
+          span.style.color = '#fff';
+          span.style.transition = 'background-color 0.3s, color 0.3s';
           if (!firstSpan) firstSpan = span;
         }
       }
@@ -319,7 +323,10 @@ export default function AnswerCard({ answers, currentPage, isLastPage, exerciseI
       firstSpan.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
     setTimeout(() => {
-      spans.forEach(s => s.classList.remove('highlight-quote'));
+      spans.forEach(span => {
+        span.style.backgroundColor = '';
+        span.style.color = '';
+      });
     }, 3000);
   }, [setFocusPath]);
 

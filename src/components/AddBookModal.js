@@ -180,7 +180,7 @@ export default function AddBookModal({ onClose }) {
         )}
 
         {step === 'structure-input' && (
-          <div>
+          <div className="max-h-[60vh] overflow-y-auto">
             <h2 className="text-xl font-medium text-gray-800 mb-4">输入目录内容</h2>
             <p className="text-xs text-gray-400 mb-4">最底层为小节，上层均为层级名称</p>
             {error && <p className="text-red-500 text-sm mb-3">{error}</p>}

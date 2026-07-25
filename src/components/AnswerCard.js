@@ -587,26 +587,42 @@ export default function AnswerCard({
     setShowCommentInput(true);
   };
 
+  // 点击引用文字定位并高亮（扩大查找范围到整个卡片）
   const handleQuoteClick = useCallback((start, end) => {
+    // 退出所有聚焦
     setFocusPath([]);
-    if (answerTextRef.current) {
-      const spans = answerTextRef.current.querySelectorAll('.char-span');
-      let firstSpan = null;
-      spans.forEach(span => {
-        const idx = parseInt(span.getAttribute('data-idx'));
-        if (!isNaN(idx) && idx >= start && idx <= end) {
-          span.classList.add('highlight-quote');
-          if (!firstSpan) firstSpan = span;
-        }
-      });
-      if (firstSpan) {
-        firstSpan.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const container = answerContainerRef.current;
+    if (!container) return;
+
+    const spans = container.querySelectorAll('.char-span, .math-formula');
+    let firstSpan = null;
+
+    spans.forEach(span => {
+      let idx, len;
+      if (span.classList.contains('math-formula')) {
+        idx = parseInt(span.getAttribute('data-idx'));
+        len = parseInt(span.getAttribute('data-length'));
+      } else {
+        idx = parseInt(span.getAttribute('data-idx'));
+        len = 1;
       }
-      setTimeout(() => {
-        spans.forEach(s => s.classList.remove('highlight-quote'));
-      }, 3000);
+      if (isNaN(idx)) return;
+
+      const spanEnd = idx + (len || 1);
+      if (idx < end && spanEnd > start) {
+        span.classList.add('highlight-quote');
+        if (!firstSpan) firstSpan = span;
+      }
+    });
+
+    if (firstSpan) {
+      firstSpan.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
-  }, []);
+
+    setTimeout(() => {
+      spans.forEach(s => s.classList.remove('highlight-quote'));
+    }, 3000);
+  }, [setFocusPath]);
 
   const handleExerciseCommentSubmit = async ({ content, parentId, quoteText, quoteStart, quoteEnd }) => {
     if (!requireLogin()) return;

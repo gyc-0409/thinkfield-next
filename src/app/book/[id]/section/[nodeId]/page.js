@@ -16,7 +16,7 @@ function SectionContent() {
   const [nodePath, setNodePath] = useState([]);
   const [currentNode, setCurrentNode] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [sidebarOpen, setSidebarOpen] = useState(false); // 手机端默认不弹出
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [selectedQuestionId, setSelectedQuestionId] = useState(null);
   const [showNewDiscussion, setShowNewDiscussion] = useState(true);
   const [discussionType, setDiscussionType] = useState('question');
@@ -201,10 +201,10 @@ function SectionContent() {
         </button>
       </div>
 
-      {/* 手机端抽屉侧边栏 */}
+      {/* 手机端抽屉侧边栏（背景模糊） */}
       {sidebarOpen && (
         <div className="md:hidden fixed inset-0 z-30 flex">
-          <div className="absolute inset-0 bg-black bg-opacity-40" onClick={() => setSidebarOpen(false)} />
+          <div className="absolute inset-0" style={{ backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }} onClick={() => setSidebarOpen(false)} />
           <div className="relative w-72 bg-white shadow-2xl h-full overflow-y-auto animate-slide-in">
             <div className="p-4 border-b border-gray-100 flex items-center justify-between">
               <h2 className="text-sm font-medium text-gray-800 truncate">{sectionTitle}</h2>

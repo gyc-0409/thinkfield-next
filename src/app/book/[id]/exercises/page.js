@@ -17,7 +17,7 @@ function ExercisesContent() {
   const [bookType, setBookType] = useState('science');
   const [sectionTitle, setSectionTitle] = useState('习题');
   const [loading, setLoading] = useState(true);
-  const [sidebarOpen, setSidebarOpen] = useState(false); // 手机端默认不弹出
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [selectedExerciseId, setSelectedExerciseId] = useState(null);
   const [showAddExercise, setShowAddExercise] = useState(true);
   const [newTitle, setNewTitle] = useState('');
@@ -146,10 +146,10 @@ function ExercisesContent() {
         </button>
       </div>
 
-      {/* 手机端抽屉侧边栏 */}
+      {/* 手机端抽屉侧边栏（背景模糊） */}
       {sidebarOpen && (
         <div className="md:hidden fixed inset-0 z-30 flex">
-          <div className="absolute inset-0 bg-black bg-opacity-40" onClick={() => setSidebarOpen(false)} />
+          <div className="absolute inset-0" style={{ backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }} onClick={() => setSidebarOpen(false)} />
           <div className="relative w-72 bg-white shadow-2xl h-full overflow-y-auto animate-slide-in">
             <div className="p-4 border-b border-gray-100 flex items-center justify-between">
               <h2 className="text-sm font-medium text-gray-800">习题列表</h2>

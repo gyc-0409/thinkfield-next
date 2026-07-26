@@ -10,17 +10,15 @@ export default function AuthModal({ onClose }) {
   const [sendCodeLoading, setSendCodeLoading] = useState(false);
   const [codeCountdown, setCodeCountdown] = useState(0);
 
-  // 表单字段
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
-  const [educationStatus, setEducationStatus] = useState(''); // 'studying' | 'graduated'
+  const [educationStatus, setEducationStatus] = useState('');
   const [university, setUniversity] = useState('');
   const [universityList, setUniversityList] = useState([]);
 
-  // 大学搜索相关
   const [uniSearch, setUniSearch] = useState('');
   const [showUniDropdown, setShowUniDropdown] = useState(false);
   const uniDropdownRef = useRef(null);
@@ -129,7 +127,7 @@ export default function AuthModal({ onClose }) {
           onChange={e => setUsername(e.target.value)}
           type="text"
           placeholder="用户名或邮箱"
-          className="w-full border border-gray-200 p-2.5 rounded-md mb-3 text-sm focus:outline-none focus:border-gray-400"
+          className="w-full border border-gray-200 p-2.5 rounded-md mb-3 text-sm focus:outline-none focus:border-gray-400 placeholder:text-gray-400"
           autoComplete="username"
         />
         <input
@@ -137,7 +135,7 @@ export default function AuthModal({ onClose }) {
           onChange={e => setPassword(e.target.value)}
           type="password"
           placeholder="密码"
-          className="w-full border border-gray-200 p-2.5 rounded-md mb-3 text-sm focus:outline-none focus:border-gray-400"
+          className="w-full border border-gray-200 p-2.5 rounded-md mb-3 text-sm focus:outline-none focus:border-gray-400 placeholder:text-gray-400"
           autoComplete="current-password"
         />
 
@@ -148,7 +146,7 @@ export default function AuthModal({ onClose }) {
               onChange={e => setConfirmPassword(e.target.value)}
               type="password"
               placeholder="确认密码"
-              className="w-full border border-gray-200 p-2.5 rounded-md mb-3 text-sm focus:outline-none focus:border-gray-400"
+              className="w-full border border-gray-200 p-2.5 rounded-md mb-3 text-sm focus:outline-none focus:border-gray-400 placeholder:text-gray-400"
               autoComplete="new-password"
             />
             <input
@@ -156,7 +154,7 @@ export default function AuthModal({ onClose }) {
               onChange={e => setEmail(e.target.value)}
               type="email"
               placeholder="邮箱"
-              className="w-full border border-gray-200 p-2.5 rounded-md mb-3 text-sm focus:outline-none focus:border-gray-400"
+              className="w-full border border-gray-200 p-2.5 rounded-md mb-3 text-sm focus:outline-none focus:border-gray-400 placeholder:text-gray-400"
               autoComplete="email"
             />
             <div className="flex gap-2 mb-3">
@@ -165,7 +163,7 @@ export default function AuthModal({ onClose }) {
                 onChange={e => setCode(e.target.value)}
                 type="text"
                 placeholder="验证码"
-                className="flex-1 border border-gray-200 p-2.5 rounded-md text-sm focus:outline-none focus:border-gray-400"
+                className="flex-1 border border-gray-200 p-2.5 rounded-md text-sm focus:outline-none focus:border-gray-400 placeholder:text-gray-400"
               />
               <button
                 onClick={handleSendCode}
@@ -176,7 +174,6 @@ export default function AuthModal({ onClose }) {
               </button>
             </div>
 
-            {/* 就读状态 */}
             <div className="mb-3">
               <select
                 value={educationStatus}
@@ -187,7 +184,7 @@ export default function AuthModal({ onClose }) {
                     setUniSearch('');
                   }
                 }}
-                className="w-full border border-gray-200 p-2.5 rounded-md text-sm focus:outline-none focus:border-gray-400 bg-white"
+                className="w-full border border-gray-200 p-2.5 rounded-md text-sm focus:outline-none focus:border-gray-400 bg-white placeholder:text-gray-400"
               >
                 <option value="">选择就读状态</option>
                 <option value="studying">就读大学</option>
@@ -195,7 +192,6 @@ export default function AuthModal({ onClose }) {
               </select>
             </div>
 
-            {/* 大学搜索选择器（仅在就读大学时显示） */}
             {educationStatus === 'studying' && (
               <div className="mb-3 relative" ref={uniDropdownRef}>
                 <input
@@ -208,7 +204,7 @@ export default function AuthModal({ onClose }) {
                   }}
                   onFocus={() => setShowUniDropdown(true)}
                   placeholder="搜索并选择就读大学"
-                  className="w-full border border-gray-200 p-2.5 rounded-md text-sm focus:outline-none focus:border-gray-400"
+                  className="w-full border border-gray-200 p-2.5 rounded-md text-sm focus:outline-none focus:border-gray-400 placeholder:text-gray-400"
                 />
                 {showUniDropdown && (
                   <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto">

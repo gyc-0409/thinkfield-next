@@ -151,12 +151,8 @@ export default function AdminPanel({ onClose }) {
             <h3 className="font-medium mb-3">角色设置</h3>
             <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-end">
               <div className="flex-1">
-                <input
-                  value={roleUsername}
-                  onChange={e => setRoleUsername(e.target.value)}
-                  placeholder="用户名"
-                  className="w-full border border-gray-200 p-2 rounded text-sm"
-                />
+                <input value={roleUsername} onChange={e => setRoleUsername(e.target.value)} placeholder="用户名"
+                  className="w-full border border-gray-200 p-2 rounded text-sm placeholder:text-gray-400" />
               </div>
               <select value={newRole} onChange={e => setNewRole(e.target.value)} className="border border-gray-200 p-2 rounded text-sm bg-white">
                 <option value="user">用户</option>

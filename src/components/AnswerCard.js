@@ -26,6 +26,7 @@ function ContinuationNode({
   const { requireLogin } = useAuth();
   const [hover, setHover] = useState(false);
   const containerRef = useRef(null);
+  const formRef = useRef(null);
   const [isMobile, setIsMobile] = useState(false);
   const [touchMenu, setTouchMenu] = useState({ visible: false, x: 0, y: 0, startIdx: null, endIdx: null, text: '' });
   const longPressTimer = useRef(null);
@@ -44,6 +45,13 @@ function ContinuationNode({
     setLiked(cont.liked_by?.includes(currentUser) || false);
     setLikes(cont.likes || 0);
   }, [cont, currentUser]);
+
+  // 续写表单出现时自动滚动
+  useEffect(() => {
+    if (showForm && formRef.current) {
+      formRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [showForm]);
 
   const isVisible = focusPath.length === 0 || ancestorIds.some(id => focusPath.includes(id)) || isFocused;
   let cutAfterIdx;
@@ -164,7 +172,7 @@ function ContinuationNode({
               <button className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" onClick={closeTouchMenu}>取消</button>
             </div>}
             {cutTarget?.nodeId === nodeId && showForm && (
-              <div style={{ marginLeft: isMobile ? 4 : 8, marginTop: 8, padding: isMobile ? 8 : 12, border: '1px solid #ddd', borderRadius: 6, background: '#fff' }} onClick={(e) => e.stopPropagation()}>
+              <div ref={formRef} style={{ marginLeft: isMobile ? 4 : 8, marginTop: 8, padding: isMobile ? 8 : 12, border: '1px solid #ddd', borderRadius: 6, background: '#fff' }} onClick={(e) => e.stopPropagation()}>
                 <div className="text-sm font-medium mb-2">续写动机 *</div>
                 <LatexPreviewGroup value={formMotivation} onChange={(e) => onFormMotivationChange(e.target.value)} rows={2} placeholder="为什么要续写这一步？" showPreview={showPreview} />
                 <div className="text-sm font-medium mb-2">续写内容 *</div>
@@ -204,6 +212,7 @@ export default function AnswerCard({ answers, currentPage, isLastPage, exerciseI
   const removeFocus = useCallback((contId) => { setFocusPath(prev => { const idx = prev.indexOf(contId); return idx === -1 ? prev : prev.slice(0, idx); }); }, []);
   const answerContainerRef = useRef(null);
   const answerTextRef = useRef(null);
+  const commentInputRef = useRef(null);
   const [overallThought, setOverallThought] = useState('');
   const [newAnswerContent, setNewAnswerContent] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -226,6 +235,13 @@ export default function AnswerCard({ answers, currentPage, isLastPage, exerciseI
   useEffect(() => { if (currentAns) { setAnswerLiked(currentAns.liked_by?.includes(user) || false); setAnswerLikes(currentAns.likes || 0); } }, [currentAns, user]);
   const fetchComments = useCallback(async () => { if (!currentAns) return; try { const res = await fetch(`/api/exercises/${exerciseId}/answers/${currentAns.id}/comments`); const data = await res.json(); setExerciseComments(Array.isArray(data) ? data : []); } catch (e) { console.error(e); } }, [exerciseId, currentAns]);
   useEffect(() => { if (currentAns) { fetchComments(); setQuoteText(''); setReplyParentId(null); setShowCommentInput(false); } }, [currentAns, fetchComments]);
+
+  // 评论输入框出现时自动滚动
+  useEffect(() => {
+    if (showCommentInput && commentInputRef.current) {
+      commentInputRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [showCommentInput]);
 
   const handleQuote = (text, start, end) => { setQuoteText(text); setQuoteStart(start); setQuoteEnd(end); setReplyParentId(null); setReplyAuthor(''); setShowCommentInput(true); };
   const handleContextMenu = (e) => {
@@ -287,44 +303,64 @@ export default function AnswerCard({ answers, currentPage, isLastPage, exerciseI
   const handleReply = (commentId, author) => { setReplyParentId(commentId); setReplyAuthor(author); setQuoteText(''); setShowCommentInput(true); };
   const handleDeleteExerciseComment = async (commentId) => { if (!currentAns) return; try { const res = await fetch(`/api/exercises/${exerciseId}/answers/${currentAns.id}/comments/${commentId}`, { method: 'DELETE' }); if (!res.ok) throw new Error((await res.json()).error); } catch (e) { throw e; } };
 
-  // 基于引用文本的高亮，避免索引错位
+  // 最终版高亮：文字用文本匹配，公式用索引匹配
   const handleQuoteClick = useCallback((start, end, quoteText) => {
     setFocusPath([]);
     const container = answerContainerRef.current;
-    if (!container || !quoteText) return;
-    const spans = container.querySelectorAll('.char-span');
-    let firstSpan = null;
-    let accumulated = '';
-    const spanList = [];
+    if (!container) return;
 
-    spans.forEach(span => {
-      accumulated += span.textContent;
-      spanList.push(span);
+    const allSpans = container.querySelectorAll('.char-span, .math-formula');
+    let firstSpan = null;
+
+    // 1. 处理公式（.math-formula）：直接用索引区间匹配
+    allSpans.forEach(span => {
+      if (span.classList.contains('math-formula')) {
+        const idx = parseInt(span.getAttribute('data-idx'));
+        const len = parseInt(span.getAttribute('data-length'));
+        if (isNaN(idx) || isNaN(len)) return;
+        const spanEnd = idx + len;
+        if (idx < end && spanEnd > start) {
+          span.style.backgroundColor = '#1a1a1a';
+          span.style.color = '#fff';
+          span.style.transition = 'background-color 0.3s, color 0.3s';
+          if (!firstSpan) firstSpan = span;
+        }
+      }
     });
 
-    const idx = accumulated.indexOf(quoteText);
-    if (idx === -1) return;
-
-    let currentPos = 0;
-    for (const span of spanList) {
-      const spanStart = currentPos;
-      const spanEnd = currentPos + span.textContent.length;
-      if (spanEnd > idx && spanStart < idx + quoteText.length) {
-        span.style.backgroundColor = '#1a1a1a';
-        span.style.color = '#fff';
-        span.style.transition = 'background-color 0.3s, color 0.3s';
-        if (!firstSpan) firstSpan = span;
+    // 2. 处理普通文字（.char-span）：用文本匹配
+    if (quoteText) {
+      const charSpans = container.querySelectorAll('.char-span');
+      const spanList = [];
+      let accumulated = '';
+      charSpans.forEach(span => {
+        accumulated += span.textContent;
+        spanList.push(span);
+      });
+      const idx = accumulated.indexOf(quoteText);
+      if (idx !== -1) {
+        let currentPos = 0;
+        for (const span of spanList) {
+          const spanStart = currentPos;
+          const spanEnd = currentPos + span.textContent.length;
+          if (spanEnd > idx && spanStart < idx + quoteText.length) {
+            span.style.backgroundColor = '#1a1a1a';
+            span.style.color = '#fff';
+            span.style.transition = 'background-color 0.3s, color 0.3s';
+            if (!firstSpan) firstSpan = span;
+          }
+          currentPos = spanEnd;
+        }
       }
-      currentPos = spanEnd;
     }
 
     if (firstSpan) {
       firstSpan.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
     setTimeout(() => {
-      spanList.forEach(s => {
-        s.style.backgroundColor = '';
-        s.style.color = '';
+      allSpans.forEach(span => {
+        span.style.backgroundColor = '';
+        span.style.color = '';
       });
     }, 3000);
   }, [setFocusPath]);
@@ -344,17 +380,12 @@ export default function AnswerCard({ answers, currentPage, isLastPage, exerciseI
 
   const handleEnterCutMode = () => { setCutMode(true); setCutTarget(null); setShowForm(false); };
   const handleCancelCut = () => { setCutMode(false); setCutTarget(null); setShowForm(false); };
-
-  // 截断点只允许在解答正文和续写内容（.answer-text-container）上设置
   const handleContainerClick = (e) => {
     if (!cutMode) return;
     const target = e.target;
     if (!target.classList.contains('char-span') && !target.classList.contains('math-formula')) return;
     e.stopPropagation();
-
-    // 禁止在整体思路、动机等非内容区域设置截断点
     if (!target.closest('.answer-text-container')) return;
-
     const idx = parseInt(target.getAttribute('data-idx'));
     if (isNaN(idx)) return;
     const nodeContainer = target.closest('[data-node-id]');
@@ -365,7 +396,6 @@ export default function AnswerCard({ answers, currentPage, isLastPage, exerciseI
     setCutTarget({ nodeId, start: idx, parentContinuationId: parentContinuationId || null });
     setCutMode(false); setShowForm(true); setFormMotivation(''); setFormContent('');
   };
-
   const handleSubmitForm = async () => {
     if (!requireLogin()) return;
     if (!formMotivation.trim() || !formContent.trim()) { alert('请填写完整'); return; }
@@ -386,7 +416,6 @@ export default function AnswerCard({ answers, currentPage, isLastPage, exerciseI
       });
     } catch (e) { alert(e.message); }
   };
-
   const handleSubmitAnswer = async () => {
     if (!requireLogin()) return;
     if (!overallThought.trim() || !newAnswerContent.trim()) return alert('请填写完整');
@@ -491,7 +520,7 @@ export default function AnswerCard({ answers, currentPage, isLastPage, exerciseI
           </div>
         )}
         {showCommentInput && (
-          <div className="mt-4">
+          <div ref={commentInputRef} className="mt-4">
             <CommentInput questionId={null} thoughtId={null} quoteText={quoteText} quoteStart={quoteStart} quoteEnd={quoteEnd} parentId={replyParentId} replyingTo={replyAuthor} onCommentPosted={handleCommentPosted} onClearQuote={() => { setShowCommentInput(false); setQuoteText(''); }} onClearReply={() => { setReplyParentId(null); setReplyAuthor(''); }} onSubmit={handleExerciseCommentSubmit} showPreview={showPreview} />
           </div>
         )}

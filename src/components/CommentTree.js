@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { renderLatexToHTML } from '@/lib/renderLatex';
 
 export default function CommentTree({ comments, depth = 0, questionId, thoughtId, onReply, onQuoteClick, onDelete, currentUser, deleteComment }) {
@@ -33,6 +33,7 @@ function CommentItem({ comment, depth, questionId, thoughtId, onReply, onQuoteCl
   const [deleting, setDeleting] = useState(false);
 
   const hasChildren = comment.children && comment.children.length > 0;
+  const quoteRef = useRef(null);
 
   if (isDeleted && !hasChildren) return null;
 
@@ -71,13 +72,19 @@ function CommentItem({ comment, depth, questionId, thoughtId, onReply, onQuoteCl
     setDeleting(false);
   };
 
-  const handleQuoteClickLocal = (e) => {
-    e.stopPropagation();
-    if (comment.quote_start !== undefined && comment.quote_end !== undefined && onQuoteClick) {
-      // 确保传递三个参数：start, end, quoteText
-      onQuoteClick(comment.quote_start, comment.quote_end, comment.quote_text || '');
-    }
-  };
+  // 用原生事件绑定引用点击，确保参数传递
+  useEffect(() => {
+    const el = quoteRef.current;
+    if (!el || !onQuoteClick) return;
+    const handler = (e) => {
+      e.stopPropagation();
+      if (comment.quote_start !== undefined && comment.quote_end !== undefined) {
+        onQuoteClick(comment.quote_start, comment.quote_end, comment.quote_text || '');
+      }
+    };
+    el.addEventListener('click', handler);
+    return () => el.removeEventListener('click', handler);
+  }, [comment.quote_start, comment.quote_end, comment.quote_text, onQuoteClick]);
 
   return (
     <div style={{ marginLeft: depth * 16 }}>
@@ -111,8 +118,8 @@ function CommentItem({ comment, depth, questionId, thoughtId, onReply, onQuoteCl
             {comment.quote_text && (
               <div className="text-xs text-gray-500 mb-1">
                 <span
+                  ref={quoteRef}
                   className="italic cursor-pointer hover:text-gray-700 transition-colors"
-                  onClick={handleQuoteClickLocal}
                 >
                   引用：{comment.quote_text.substring(0, 80)}
                 </span>

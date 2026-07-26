@@ -101,8 +101,8 @@ export default function QuestionDetail({ questionId, bookType }) {
   const currentThoughtId = thoughts[currentThoughtPage]?.id;
 
   return (
-    <div className="h-full flex flex-col">
-      <div className="mb-4 md:mb-6">
+    <div className="h-full flex flex-col pt-14 md:pt-0">
+      <div className="mb-6">
         {question.location && (
           <div className="text-xs text-gray-400 mb-1" dangerouslySetInnerHTML={{ __html: renderLatexToHTML(question.location) }} />
         )}

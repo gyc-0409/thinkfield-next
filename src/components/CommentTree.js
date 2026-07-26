@@ -74,7 +74,7 @@ function CommentItem({ comment, depth, questionId, thoughtId, onReply, onQuoteCl
   const handleQuoteClickLocal = (e) => {
     e.stopPropagation();
     if (comment.quote_start !== undefined && comment.quote_end !== undefined && onQuoteClick) {
-      onQuoteClick(comment.quote_start, comment.quote_end, comment.quote_text);
+      onQuoteClick(comment.quote_start, comment.quote_end, comment.quote_text || '');
     }
   };
 

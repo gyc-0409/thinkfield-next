@@ -303,7 +303,6 @@ export default function AnswerCard({ answers, currentPage, isLastPage, exerciseI
   const handleReply = (commentId, author) => { setReplyParentId(commentId); setReplyAuthor(author); setQuoteText(''); setShowCommentInput(true); };
   const handleDeleteExerciseComment = async (commentId) => { if (!currentAns) return; try { const res = await fetch(`/api/exercises/${exerciseId}/answers/${currentAns.id}/comments/${commentId}`, { method: 'DELETE' }); if (!res.ok) throw new Error((await res.json()).error); } catch (e) { throw e; } };
 
-  // 最终版高亮：文字用文本匹配，公式用索引匹配
   const handleQuoteClick = useCallback((start, end, quoteText) => {
     setFocusPath([]);
     const container = answerContainerRef.current;
@@ -312,7 +311,7 @@ export default function AnswerCard({ answers, currentPage, isLastPage, exerciseI
     const allSpans = container.querySelectorAll('.char-span, .math-formula');
     let firstSpan = null;
 
-    // 1. 处理公式（.math-formula）：直接用索引区间匹配
+    // 1. 公式高亮：遍历所有 .math-formula，只要索引区间重叠就高亮
     allSpans.forEach(span => {
       if (span.classList.contains('math-formula')) {
         const idx = parseInt(span.getAttribute('data-idx'));
@@ -328,8 +327,8 @@ export default function AnswerCard({ answers, currentPage, isLastPage, exerciseI
       }
     });
 
-    // 2. 处理普通文字（.char-span）：用文本匹配
-    if (quoteText) {
+    // 2. 文字高亮：仅当 quoteText 有效时用文本匹配
+    if (quoteText && quoteText.trim().length > 0) {
       const charSpans = container.querySelectorAll('.char-span');
       const spanList = [];
       let accumulated = '';

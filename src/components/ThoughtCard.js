@@ -43,12 +43,6 @@ export default function ThoughtCard({
     return () => window.removeEventListener('resize', check);
   }, []);
 
-  // 移动端长按菜单状态
-  const [touchMenu, setTouchMenu] = useState({ visible: false, x: 0, y: 0, startIdx: null, endIdx: null, text: '' });
-  const longPressTimer = useRef(null);
-  const touchStartPos = useRef({ x: 0, y: 0 });
-  const touchTargetRef = useRef(null);
-
   // 点赞状态
   const initialLiked = thought ? (thought.liked_by?.includes(currentUser) || false) : false;
   const [liked, setLiked] = useState(initialLiked);
@@ -85,94 +79,9 @@ export default function ThoughtCard({
     }, 3000);
   }, []);
 
-  // 获取触摸点下的字符信息
-  const getCharAtPosition = (clientX, clientY) => {
-    const container = contentRef.current;
-    if (!container) return null;
-    // 隐藏可能存在的菜单，避免干扰
-    const el = document.elementFromPoint(clientX, clientY);
-    if (!el) return null;
-    const charSpan = el.closest('.char-span');
-    const mathSpan = el.closest('.math-formula');
-    if (charSpan) {
-      const idx = parseInt(charSpan.getAttribute('data-idx'));
-      if (!isNaN(idx)) return { type: 'char', idx, text: charSpan.textContent };
-    }
-    if (mathSpan) {
-      const idx = parseInt(mathSpan.getAttribute('data-idx'));
-      const len = parseInt(mathSpan.getAttribute('data-length'));
-      const formula = mathSpan.getAttribute('data-formula');
-      if (!isNaN(idx) && len && formula) return { type: 'formula', idx, endIdx: idx + len, text: formula };
-    }
-    return null;
-  };
-
-  // 开始触摸
-  const handleTouchStart = (e) => {
-    if (!isMobile || !thought || !requireLogin()) return;
-    if (e.touches.length !== 1) {
-      clearLongPress();
-      return;
-    }
-    const touch = e.touches[0];
-    touchStartPos.current = { x: touch.clientX, y: touch.clientY };
-    touchTargetRef.current = e.target;
-
-    longPressTimer.current = setTimeout(() => {
-      const charInfo = getCharAtPosition(touchStartPos.current.x, touchStartPos.current.y);
-      if (charInfo) {
-        const startIdx = charInfo.type === 'formula' ? charInfo.idx : charInfo.idx;
-        const endIdx = charInfo.type === 'formula' ? charInfo.endIdx : startIdx + (charInfo.text ? charInfo.text.length : 1);
-        const quoteText = charInfo.type === 'formula' ? charInfo.text : (charInfo.text || '');
-        setTouchMenu({
-          visible: true,
-          x: touchStartPos.current.x,
-          y: touchStartPos.current.y,
-          startIdx,
-          endIdx,
-          text: quoteText,
-        });
-      }
-      longPressTimer.current = null;
-    }, 600);
-  };
-
-  const handleTouchMove = (e) => {
-    if (!longPressTimer.current) return;
-    const touch = e.touches[0];
-    const dx = touch.clientX - touchStartPos.current.x;
-    const dy = touch.clientY - touchStartPos.current.y;
-    if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
-      clearLongPress();
-    }
-  };
-
-  const handleTouchEnd = (e) => {
-    clearLongPress();
-    // 如果没有长按菜单，且没有选中文字，则允许其他行为
-  };
-
-  const clearLongPress = () => {
-    if (longPressTimer.current) {
-      clearTimeout(longPressTimer.current);
-      longPressTimer.current = null;
-    }
-  };
-
-  const handleTouchMenuQuote = () => {
-    if (touchMenu.startIdx !== null && touchMenu.endIdx !== null && touchMenu.text) {
-      onQuote(touchMenu.text, touchMenu.startIdx, touchMenu.endIdx);
-    }
-    setTouchMenu({ visible: false, x: 0, y: 0, startIdx: null, endIdx: null, text: '' });
-  };
-
-  const closeTouchMenu = () => {
-    setTouchMenu({ visible: false, x: 0, y: 0, startIdx: null, endIdx: null, text: '' });
-  };
-
-  // 右键引用（桌面端）
+  // 右键引用（支持公式直接右键）
   useEffect(() => {
-    if (!contentRef.current || !thought || isMobile) return;
+    if (!contentRef.current || !thought) return;
     const el = contentRef.current;
 
     const handler = (e) => {
@@ -214,7 +123,7 @@ export default function ThoughtCard({
 
     el.addEventListener('contextmenu', handler);
     return () => el.removeEventListener('contextmenu', handler);
-  }, [thought, onQuote, requireLogin, isMobile]);
+  }, [thought, onQuote, requireLogin]);
 
   const handleSubmit = async () => {
     if (!requireLogin()) return;
@@ -235,20 +144,32 @@ export default function ThoughtCard({
     setSubmitting(false);
   };
 
+  // 点赞/取消点赞（乐观更新）
   const handleLike = async () => {
     if (!requireLogin()) return;
+    const wasLiked = liked;
+    // 立即切换 UI
+    setLiked(!wasLiked);
+    setLikes(prev => wasLiked ? Math.max(prev - 1, 0) : prev + 1);
+
     try {
       const res = await fetch(`/api/questions/${questionId}/thoughts/${thought.id}/like`, {
         method: 'POST',
       });
-      if (res.ok) {
+      if (!res.ok) {
+        // 请求失败，回滚状态
+        setLiked(wasLiked);
+        setLikes(prev => wasLiked ? prev + 1 : Math.max(prev - 1, 0));
+      } else {
+        // 成功，用服务器返回的值校准（可选）
         const data = await res.json();
         setLikes(data.likes);
-        setLiked(!liked);
-        onThoughtAdded();
+        // 不再调用 onThoughtAdded()，避免全量刷新
       }
     } catch (e) {
-      console.error(e);
+      // 网络错误，回滚
+      setLiked(wasLiked);
+      setLikes(prev => wasLiked ? prev + 1 : Math.max(prev - 1, 0));
     }
   };
 
@@ -291,35 +212,11 @@ export default function ThoughtCard({
       </div>
       <div
         ref={contentRef}
-        className={`text-gray-800 whitespace-pre-wrap ${isMobile ? 'text-sm' : ''} select-auto`}
-        style={{ marginBottom: isMobile ? 8 : 12, touchAction: 'manipulation' }}
+        className={`text-gray-800 whitespace-pre-wrap ${isMobile ? 'text-sm' : ''}`}
+        style={{ marginBottom: isMobile ? 8 : 12 }}
         dangerouslySetInnerHTML={{ __html: renderLatexToHTML(thought.content) }}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
       />
       <p className="text-xs text-gray-400 mt-2">选中文字后右键即可引用并追问</p>
-
-      {/* 移动端长按菜单 */}
-      {touchMenu.visible && (
-        <div
-          className="fixed z-50 bg-white border border-gray-300 rounded-md shadow-lg py-1 px-0"
-          style={{ left: touchMenu.x, top: touchMenu.y, transform: 'translate(-50%, -100%)' }}
-        >
-          <button
-            className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-            onClick={handleTouchMenuQuote}
-          >
-            引用
-          </button>
-          <button
-            className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-            onClick={closeTouchMenu}
-          >
-            取消
-          </button>
-        </div>
-      )}
 
       {/* 评论列表 */}
       {comments && comments.length > 0 && (

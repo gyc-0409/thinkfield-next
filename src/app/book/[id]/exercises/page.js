@@ -129,8 +129,11 @@ function ExercisesContent() {
 
   return (
     <div className="fixed inset-0 z-10 flex overflow-hidden bg-white">
-      {/* 手机端顶部栏：只保留节名习题和返回按钮 */}
+      {/* 手机端顶部栏：列表 | 小节名 习题 | 返回 */}
       <div className="md:hidden fixed top-0 left-0 right-0 z-20 flex items-center justify-between px-3 py-2 border-b border-gray-200 bg-white">
+        <button onClick={() => setSidebarOpen(true)} className="text-gray-600 hover:bg-gray-100 px-2 py-1 rounded text-sm border border-gray-200">
+          列表
+        </button>
         <h2 className="text-sm font-medium text-gray-800 truncate flex-1 text-center">{sectionTitle}</h2>
         <button
           onClick={handleTocClick}

@@ -16,7 +16,7 @@ function SectionContent() {
   const [nodePath, setNodePath] = useState([]);
   const [currentNode, setCurrentNode] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false); // 手机端默认不弹出
   const [selectedQuestionId, setSelectedQuestionId] = useState(null);
   const [showNewDiscussion, setShowNewDiscussion] = useState(true);
   const [discussionType, setDiscussionType] = useState('question');
@@ -28,10 +28,8 @@ function SectionContent() {
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState('');
 
-  // 目录按钮闪烁状态
   const [tocGlow, setTocGlow] = useState(false);
 
-  // 锁定滚动
   useEffect(() => {
     document.documentElement.style.overflow = 'hidden';
     document.body.style.overflow = 'hidden';
@@ -41,7 +39,6 @@ function SectionContent() {
     };
   }, []);
 
-  // 检查目录按钮是否已点击过
   useEffect(() => {
     const clicked = localStorage.getItem('thinkfield-toc-clicked');
     if (!clicked) setTocGlow(true);
@@ -111,13 +108,11 @@ function SectionContent() {
     setSelectedQuestionId(null);
     setDiscussionType('question');
     clearForm();
-    if (window.innerWidth < 768) setSidebarOpen(false);
   };
 
   const handleSelectQuestion = (questionId) => {
     setSelectedQuestionId(questionId);
     setShowNewDiscussion(false);
-    if (window.innerWidth < 768) setSidebarOpen(false);
   };
 
   const clearForm = () => {
@@ -178,7 +173,6 @@ function SectionContent() {
     navigate('/');
   };
 
-  // 点击目录按钮，停止闪烁
   const handleTocClick = () => {
     localStorage.setItem('thinkfield-toc-clicked', '1');
     setTocGlow(false);
@@ -190,12 +184,9 @@ function SectionContent() {
 
   return (
     <div className="fixed inset-0 z-10 flex overflow-hidden bg-white">
-      {/* 手机端顶部栏：列表 | 节名 | 目录（闪烁） */}
+      {/* 手机端顶部栏：只保留节名和目录按钮 */}
       <div className="md:hidden fixed top-0 left-0 right-0 z-20 flex items-center justify-between px-3 py-2 border-b border-gray-200 bg-white">
-        <button onClick={() => setSidebarOpen(true)} className="text-gray-600 hover:bg-gray-100 px-2 py-1 rounded text-sm border border-gray-200">
-          列表
-        </button>
-        <h2 className="text-sm font-medium text-gray-800 truncate mx-2 flex-1 text-center">{sectionTitle}</h2>
+        <h2 className="text-sm font-medium text-gray-800 truncate flex-1 text-center">{sectionTitle}</h2>
         <button
           onClick={handleTocClick}
           className={`text-gray-400 hover:text-gray-600 p-1 ${tocGlow ? 'btn-glow' : ''}`}
@@ -256,61 +247,15 @@ function SectionContent() {
         </div>
       </div>
 
-      {/* 手机端侧边栏（抽屉式） */}
-      {sidebarOpen && (
-        <div className="md:hidden fixed inset-0 z-30 flex">
-          <div className="absolute inset-0" style={{ backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }} onClick={() => setSidebarOpen(false)} />
-          <div className="relative w-72 bg-white shadow-2xl h-full overflow-y-auto animate-slide-in">
-            <div className="p-4 border-b border-gray-100 flex items-center justify-between">
-              <h2 className="text-sm font-medium text-gray-800 truncate">{sectionTitle}</h2>
-              <button onClick={() => setSidebarOpen(false)} className="text-gray-400 hover:text-gray-600 text-xl">&times;</button>
-            </div>
-            <div className="px-4 py-2 border-b border-gray-100 space-y-1">
-              <button onClick={handleNewDiscussion} className="w-full flex items-center justify-between text-sm text-gray-700 hover:bg-gray-50 px-2 py-1 rounded">
-                <span>发起新讨论</span><span className="text-lg font-light leading-none">+</span>
-              </button>
-              <button onClick={() => { navigate(`/book/${bookId}/exercises?nodeId=${nodeId}`); setSidebarOpen(false); }} className="w-full text-left text-sm text-gray-700 hover:bg-gray-50 px-2 py-1 rounded">
-                习题区
-              </button>
-            </div>
-            <div className="flex-1 min-h-0 p-4">
-              {questions.length === 0 ? (
-                <p className="text-sm text-gray-400">暂无讨论</p>
-              ) : (
-                <div className="space-y-1">
-                  {questions.map(q => (
-                    <div key={q.id} className={`group w-full text-left px-3 py-2 rounded text-sm transition-colors ${selectedQuestionId === q.id ? 'bg-gray-100 text-gray-900 font-medium' : 'text-gray-600 hover:bg-gray-50'}`}>
-                      <div className="flex items-center justify-between">
-                        <button onClick={() => handleSelectQuestion(q.id)} className="flex-1 text-left truncate">
-                          <span dangerouslySetInnerHTML={{ __html: renderLatexToHTML(q.title) }} />
-                        </button>
-                        {user && q.author === user && (
-                          <button onClick={(e) => { e.stopPropagation(); handleDeleteQuestion(q.id); }} className="text-gray-300 hover:text-red-500 ml-2 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" title="删除">
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                          </button>
-                        )}
-                      </div>
-                      <div className="text-xs text-gray-400 mt-0.5">{q.author} · {q.replies} 回复</div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* 桌面端折叠按钮 */}
       <button onClick={() => setSidebarOpen(!sidebarOpen)} className="hidden md:flex h-10 w-6 bg-gray-100 hover:bg-gray-200 items-center justify-center text-gray-500 text-xs flex-shrink-0">
         {sidebarOpen ? '<' : '>'}
       </button>
 
       {/* 右侧内容区 */}
-      <div className="flex-1 min-h-0 scroll-container p-8 pb-8 relative md:static pt-12 md:pt-8" style={{ WebkitMaskImage: 'linear-gradient(to bottom, black 92%, transparent 100%)', maskImage: 'linear-gradient(to bottom, black 92%, transparent 100%)' }}>
+      <div className="flex-1 min-h-0 scroll-container p-4 md:p-8 pb-8 relative" style={{ WebkitMaskImage: 'linear-gradient(to bottom, black 92%, transparent 100%)', maskImage: 'linear-gradient(to bottom, black 92%, transparent 100%)' }}>
         {showNewDiscussion ? (
-          <div className="max-w-xl mx-auto">
+          <div className="max-w-xl mx-auto pt-10 md:pt-0">
             <h2 className="text-lg font-medium text-gray-800 mb-6">发起新讨论</h2>
             <div className="flex gap-3 mb-6">
               <button onClick={() => { setDiscussionType('question'); clearForm(); }} className={`flex-1 py-2.5 rounded-md text-sm font-medium transition-colors ${discussionType === 'question' ? 'bg-gray-200 text-gray-900 ring-1 ring-gray-300' : 'bg-gray-100 text-gray-500 hover:bg-gray-150'}`}>提出疑问</button>

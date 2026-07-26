@@ -51,7 +51,7 @@ export default function LatexPreviewGroup({
         onChange={onChange}
         placeholder={placeholder}
         rows={rows}
-        className={`w-full border border-gray-200 p-3 rounded-md text-sm focus:outline-none focus:border-gray-400 resize-y ${textareaClassName}`}
+        className={`w-full border border-gray-200 p-3 rounded-md text-sm focus:outline-none focus:border-gray-400 resize-y placeholder:text-gray-400 ${textareaClassName}`}
       />
     );
   }
@@ -64,7 +64,8 @@ export default function LatexPreviewGroup({
         onChange={onChange}
         placeholder={placeholder}
         rows={isMobile ? Math.min(rows, 4) : rows}
-        className={`flex-1 border border-gray-200 p-3 rounded-md text-sm focus:outline-none focus:border-gray-400 resize-y ${textareaClassName}`}
+        className={`flex-1 border border-gray-200 p-3 rounded-md text-sm focus:outline-none focus:border-gray-400 resize-y placeholder:text-gray-400 ${textareaClassName}`}
+        style={{ minHeight: '60px' }}
       />
       <div
         ref={previewRef}

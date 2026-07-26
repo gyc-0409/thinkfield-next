@@ -61,7 +61,6 @@ function CommentItem({ comment, depth, questionId, thoughtId, onReply, onQuoteCl
       if (deleteComment) {
         await deleteComment(comment.id);
       } else {
-        // 默认讨论评论删除
         const res = await fetch(`/api/comments/${comment.id}`, { method: 'DELETE' });
         if (!res.ok) throw new Error('删除失败');
       }
@@ -72,10 +71,10 @@ function CommentItem({ comment, depth, questionId, thoughtId, onReply, onQuoteCl
     setDeleting(false);
   };
 
-  const handleQuoteClick = (e) => {
+  const handleQuoteClickLocal = (e) => {
     e.stopPropagation();
     if (comment.quote_start !== undefined && comment.quote_end !== undefined && onQuoteClick) {
-      onQuoteClick(comment.quote_start, comment.quote_end);
+      onQuoteClick(comment.quote_start, comment.quote_end, comment.quote_text);
     }
   };
 
@@ -112,7 +111,7 @@ function CommentItem({ comment, depth, questionId, thoughtId, onReply, onQuoteCl
               <div className="text-xs text-gray-500 mb-1">
                 <span
                   className="italic cursor-pointer hover:text-gray-700 transition-colors"
-                  onClick={handleQuoteClick}
+                  onClick={handleQuoteClickLocal}
                 >
                   引用：{comment.quote_text.substring(0, 80)}
                 </span>

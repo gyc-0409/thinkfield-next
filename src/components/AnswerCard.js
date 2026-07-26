@@ -153,7 +153,7 @@ function ContinuationNode({
           <>
             {cont.motivation && (
               <div style={{ background: '#f3f4f6', padding: isMobile ? '6px 10px' : '8px 12px', borderRadius: 6, marginBottom: 8, fontSize: isMobile ? 13 : 14 }}
-                dangerouslySetInnerHTML={{ __html: renderLatexToHTML(cont.motivation) }} />
+                dangerouslySetInnerHTML={{ __html: `<span style="font-weight:600;color:#374151">动机：</span>${renderLatexToHTML(cont.motivation)}` }} />
             )}
             <div className="answer-text-container" data-node-id={nodeId}
               style={{ whiteSpace: 'pre-wrap', marginLeft: isMobile ? 4 : 8, marginBottom: 8, fontSize: isMobile ? '0.875rem' : 'inherit', touchAction: 'manipulation' }}
@@ -287,45 +287,44 @@ export default function AnswerCard({ answers, currentPage, isLastPage, exerciseI
   const handleReply = (commentId, author) => { setReplyParentId(commentId); setReplyAuthor(author); setQuoteText(''); setShowCommentInput(true); };
   const handleDeleteExerciseComment = async (commentId) => { if (!currentAns) return; try { const res = await fetch(`/api/exercises/${exerciseId}/answers/${currentAns.id}/comments/${commentId}`, { method: 'DELETE' }); if (!res.ok) throw new Error((await res.json()).error); } catch (e) { throw e; } };
 
-  // 最终高亮逻辑：内联样式，直接操作 DOM
-  const handleQuoteClick = useCallback((start, end) => {
+  // 基于引用文本的高亮，避免索引错位
+  const handleQuoteClick = useCallback((start, end, quoteText) => {
     setFocusPath([]);
     const container = answerContainerRef.current;
-    if (!container) return;
-    const spans = container.querySelectorAll('.char-span, .math-formula');
+    if (!container || !quoteText) return;
+    const spans = container.querySelectorAll('.char-span');
     let firstSpan = null;
+    let accumulated = '';
+    const spanList = [];
 
     spans.forEach(span => {
-      if (span.classList.contains('math-formula')) {
-        const idx = parseInt(span.getAttribute('data-idx'));
-        const len = parseInt(span.getAttribute('data-length'));
-        if (isNaN(idx) || isNaN(len)) return;
-        const spanEnd = idx + len;
-        if (idx < end && spanEnd > start) {
-          span.style.backgroundColor = '#1a1a1a';
-          span.style.color = '#fff';
-          span.style.transition = 'background-color 0.3s, color 0.3s';
-          if (!firstSpan) firstSpan = span;
-        }
-      } else {
-        const idx = parseInt(span.getAttribute('data-idx'));
-        if (isNaN(idx)) return;
-        if (idx >= start && idx < end) {
-          span.style.backgroundColor = '#1a1a1a';
-          span.style.color = '#fff';
-          span.style.transition = 'background-color 0.3s, color 0.3s';
-          if (!firstSpan) firstSpan = span;
-        }
-      }
+      accumulated += span.textContent;
+      spanList.push(span);
     });
+
+    const idx = accumulated.indexOf(quoteText);
+    if (idx === -1) return;
+
+    let currentPos = 0;
+    for (const span of spanList) {
+      const spanStart = currentPos;
+      const spanEnd = currentPos + span.textContent.length;
+      if (spanEnd > idx && spanStart < idx + quoteText.length) {
+        span.style.backgroundColor = '#1a1a1a';
+        span.style.color = '#fff';
+        span.style.transition = 'background-color 0.3s, color 0.3s';
+        if (!firstSpan) firstSpan = span;
+      }
+      currentPos = spanEnd;
+    }
 
     if (firstSpan) {
       firstSpan.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
     setTimeout(() => {
-      spans.forEach(span => {
-        span.style.backgroundColor = '';
-        span.style.color = '';
+      spanList.forEach(s => {
+        s.style.backgroundColor = '';
+        s.style.color = '';
       });
     }, 3000);
   }, [setFocusPath]);
@@ -345,11 +344,17 @@ export default function AnswerCard({ answers, currentPage, isLastPage, exerciseI
 
   const handleEnterCutMode = () => { setCutMode(true); setCutTarget(null); setShowForm(false); };
   const handleCancelCut = () => { setCutMode(false); setCutTarget(null); setShowForm(false); };
+
+  // 截断点只允许在解答正文和续写内容（.answer-text-container）上设置
   const handleContainerClick = (e) => {
     if (!cutMode) return;
     const target = e.target;
     if (!target.classList.contains('char-span') && !target.classList.contains('math-formula')) return;
     e.stopPropagation();
+
+    // 禁止在整体思路、动机等非内容区域设置截断点
+    if (!target.closest('.answer-text-container')) return;
+
     const idx = parseInt(target.getAttribute('data-idx'));
     if (isNaN(idx)) return;
     const nodeContainer = target.closest('[data-node-id]');
@@ -360,6 +365,7 @@ export default function AnswerCard({ answers, currentPage, isLastPage, exerciseI
     setCutTarget({ nodeId, start: idx, parentContinuationId: parentContinuationId || null });
     setCutMode(false); setShowForm(true); setFormMotivation(''); setFormContent('');
   };
+
   const handleSubmitForm = async () => {
     if (!requireLogin()) return;
     if (!formMotivation.trim() || !formContent.trim()) { alert('请填写完整'); return; }
@@ -380,6 +386,7 @@ export default function AnswerCard({ answers, currentPage, isLastPage, exerciseI
       });
     } catch (e) { alert(e.message); }
   };
+
   const handleSubmitAnswer = async () => {
     if (!requireLogin()) return;
     if (!overallThought.trim() || !newAnswerContent.trim()) return alert('请填写完整');
@@ -449,7 +456,7 @@ export default function AnswerCard({ answers, currentPage, isLastPage, exerciseI
         </div>
         <div ref={answerTextRef} onContextMenu={handleContextMenu} onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd} style={{ touchAction: 'manipulation' }}>
           {ans.overallThought && (
-            <div className="bg-gray-100 p-3 rounded mb-3" dangerouslySetInnerHTML={{ __html: renderLatexToHTML(ans.overallThought) }} />
+            <div className="bg-gray-100 p-3 rounded mb-3" dangerouslySetInnerHTML={{ __html: `<strong>整体思路：</strong>${renderLatexToHTML(ans.overallThought)}` }} />
           )}
           <div className="answer-text-container" data-node-id={`answer-${ans.id}`} style={{ whiteSpace: 'pre-wrap', marginBottom: 12 }} dangerouslySetInnerHTML={{ __html: renderLatexToHTML(ans.content, answerCutAfterIdx) }} />
         </div>

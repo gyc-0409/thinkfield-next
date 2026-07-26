@@ -201,15 +201,57 @@ function SectionContent() {
         </button>
       </div>
 
+      {/* 手机端抽屉侧边栏 */}
+      {sidebarOpen && (
+        <div className="md:hidden fixed inset-0 z-30 flex">
+          <div className="absolute inset-0 bg-black bg-opacity-40" onClick={() => setSidebarOpen(false)} />
+          <div className="relative w-72 bg-white shadow-2xl h-full overflow-y-auto animate-slide-in">
+            <div className="p-4 border-b border-gray-100 flex items-center justify-between">
+              <h2 className="text-sm font-medium text-gray-800 truncate">{sectionTitle}</h2>
+              <button onClick={() => setSidebarOpen(false)} className="text-gray-400 hover:text-gray-600 text-xl">&times;</button>
+            </div>
+            <div className="px-4 py-2 border-b border-gray-100 space-y-1">
+              <button onClick={() => { handleNewDiscussion(); setSidebarOpen(false); }} className="w-full flex items-center justify-between text-sm text-gray-700 hover:bg-gray-50 px-2 py-1 rounded">
+                <span>发起新讨论</span><span className="text-lg font-light leading-none">+</span>
+              </button>
+              <button onClick={() => { navigate(`/book/${bookId}/exercises?nodeId=${nodeId}`); setSidebarOpen(false); }} className="w-full text-left text-sm text-gray-700 hover:bg-gray-50 px-2 py-1 rounded">
+                习题区
+              </button>
+            </div>
+            <div className="p-4">
+              {questions.length === 0 ? (
+                <p className="text-sm text-gray-400">暂无讨论</p>
+              ) : (
+                <div className="space-y-1">
+                  {questions.map(q => (
+                    <div key={q.id} className={`group w-full text-left px-3 py-2 rounded text-sm transition-colors ${selectedQuestionId === q.id ? 'bg-gray-100 text-gray-900 font-medium' : 'text-gray-600 hover:bg-gray-50'}`}>
+                      <div className="flex items-center justify-between">
+                        <button onClick={() => { handleSelectQuestion(q.id); setSidebarOpen(false); }} className="flex-1 text-left truncate">
+                          <span dangerouslySetInnerHTML={{ __html: renderLatexToHTML(q.title) }} />
+                        </button>
+                        {user && q.author === user && (
+                          <button onClick={(e) => { e.stopPropagation(); handleDeleteQuestion(q.id); }} className="text-gray-300 hover:text-red-500 ml-2 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" title="删除">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        )}
+                      </div>
+                      <div className="text-xs text-gray-400 mt-0.5">{q.author} · {q.replies} 回复</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* 桌面端侧边栏（原有风格） */}
       <div className={`hidden md:flex ${sidebarOpen ? 'w-72' : 'w-0'} transition-all duration-200 border-r border-gray-200 flex-col h-full overflow-hidden`}>
         <div className="p-4 border-b border-gray-100 flex items-center justify-between">
           <h2 className="text-sm font-medium text-gray-800 truncate">{sectionTitle}</h2>
-          <button
-            onClick={handleTocClick}
-            className={`text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-md p-1 transition-colors ${tocGlow ? 'btn-glow' : ''}`}
-            title="目录"
-          >
+          <button onClick={handleTocClick} className={`text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-md p-1 transition-colors ${tocGlow ? 'btn-glow' : ''}`} title="目录">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
             </svg>
@@ -256,9 +298,9 @@ function SectionContent() {
       </button>
 
       {/* 右侧内容区 */}
-      <div className="flex-1 min-h-0 scroll-container p-4 md:p-8 pb-8 relative" style={{ WebkitMaskImage: 'linear-gradient(to bottom, black 92%, transparent 100%)', maskImage: 'linear-gradient(to bottom, black 92%, transparent 100%)' }}>
+      <div className="flex-1 min-h-0 scroll-container p-4 md:p-8 pb-8 relative pt-12 md:pt-0" style={{ WebkitMaskImage: 'linear-gradient(to bottom, black 92%, transparent 100%)', maskImage: 'linear-gradient(to bottom, black 92%, transparent 100%)' }}>
         {showNewDiscussion ? (
-          <div className="max-w-xl mx-auto pt-10 md:pt-0">
+          <div className="max-w-xl mx-auto">
             <h2 className="text-lg font-medium text-gray-800 mb-6">发起新讨论</h2>
             <div className="flex gap-3 mb-6">
               <button onClick={() => { setDiscussionType('question'); clearForm(); }} className={`flex-1 py-2.5 rounded-md text-sm font-medium transition-colors ${discussionType === 'question' ? 'bg-gray-200 text-gray-900 ring-1 ring-gray-300' : 'bg-gray-100 text-gray-500 hover:bg-gray-150'}`}>提出疑问</button>

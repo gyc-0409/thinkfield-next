@@ -146,15 +146,47 @@ function ExercisesContent() {
         </button>
       </div>
 
+      {/* 手机端抽屉侧边栏 */}
+      {sidebarOpen && (
+        <div className="md:hidden fixed inset-0 z-30 flex">
+          <div className="absolute inset-0 bg-black bg-opacity-40" onClick={() => setSidebarOpen(false)} />
+          <div className="relative w-72 bg-white shadow-2xl h-full overflow-y-auto animate-slide-in">
+            <div className="p-4 border-b border-gray-100 flex items-center justify-between">
+              <h2 className="text-sm font-medium text-gray-800">习题列表</h2>
+              <button onClick={() => setSidebarOpen(false)} className="text-gray-400 hover:text-gray-600 text-xl">&times;</button>
+            </div>
+            <div className="px-4 py-2 border-b border-gray-100">
+              <button onClick={() => { setShowAddExercise(true); setSelectedExerciseId(null); setSidebarOpen(false); }} className="w-full text-left text-sm text-gray-700 hover:bg-gray-50 px-2 py-1 rounded">
+                + 添加习题
+              </button>
+            </div>
+            <div className="p-4">
+              {exercises.length === 0 ? (
+                <p className="text-sm text-gray-400">暂无习题</p>
+              ) : (
+                <div className="space-y-1">
+                  {exercises.map(ex => (
+                    <button
+                      key={ex.id}
+                      onClick={() => { setShowAddExercise(false); setSelectedExerciseId(ex.id); setSidebarOpen(false); }}
+                      className={`w-full text-left px-3 py-2 rounded text-sm transition-colors ${selectedExerciseId === ex.id ? 'bg-gray-100 text-gray-900 font-medium' : 'text-gray-600 hover:bg-gray-50'}`}
+                    >
+                      <div className="truncate" dangerouslySetInnerHTML={{ __html: renderLatexToHTML(ex.title) }} />
+                      <div className="text-xs text-gray-400 mt-0.5">{ex.answers?.length || 0} 个解答</div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* 桌面端侧边栏（原有风格） */}
       <div className={`hidden md:flex ${sidebarOpen ? 'w-72' : 'w-0'} transition-all duration-200 border-r border-gray-200 flex-col h-full overflow-hidden`}>
         <div className="p-4 border-b border-gray-100 flex items-center justify-between">
           <h2 className="text-sm font-medium text-gray-800">习题列表</h2>
-          <button
-            onClick={handleTocClick}
-            className={`text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-md p-1 transition-colors ${tocGlow ? 'btn-glow' : ''}`}
-            title="返回讨论"
-          >
+          <button onClick={handleTocClick} className={`text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-md p-1 transition-colors ${tocGlow ? 'btn-glow' : ''}`} title="返回讨论">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
@@ -191,9 +223,9 @@ function ExercisesContent() {
       </button>
 
       {/* 右侧内容区 */}
-      <div className="flex-1 min-h-0 scroll-container p-4 md:p-8 pb-8" style={{ WebkitMaskImage: 'linear-gradient(to bottom, black 92%, transparent 100%)', maskImage: 'linear-gradient(to bottom, black 92%, transparent 100%)' }}>
+      <div className="flex-1 min-h-0 scroll-container p-4 md:p-8 pb-8 pt-12 md:pt-0" style={{ WebkitMaskImage: 'linear-gradient(to bottom, black 92%, transparent 100%)', maskImage: 'linear-gradient(to bottom, black 92%, transparent 100%)' }}>
         {showAddExercise ? (
-          <div className="max-w-xl mx-auto pt-10 md:pt-0">
+          <div className="max-w-xl mx-auto">
             <h2 className="text-lg font-medium text-gray-800 mb-4">添加新习题</h2>
             {formError && <p className="text-red-500 text-sm mb-3">{formError}</p>}
             <LatexPreviewGroup value={newTitle} onChange={e => setNewTitle(e.target.value)} placeholder="习题题目" rows={3} showPreview={showPreview} />

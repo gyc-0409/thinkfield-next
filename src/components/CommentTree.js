@@ -130,9 +130,10 @@ function CommentItem({ comment, depth, questionId, thoughtId, onReply, onQuoteCl
 
             <div className="mt-1 flex items-center gap-3 text-xs text-gray-500">
               <button
+                onTouchEnd={(e) => { e.preventDefault(); handleLike(); }}
                 onClick={handleLike}
                 disabled={loading || isDeleted}
-                className={`transition-colors ${liked ? 'text-red-500' : 'text-gray-400 hover:text-red-500'}`}
+                className={`${liked ? 'text-red-500' : 'text-gray-400 hover:text-red-500'}`}
                 title="有价值"
               >
                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">

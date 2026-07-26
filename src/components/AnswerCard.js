@@ -151,7 +151,12 @@ function ContinuationNode({
           <span style={{ cursor: 'pointer', fontWeight: 600, color: '#374151', fontSize: isMobile ? '0.875rem' : '1rem' }}
             onClick={() => toggleFold(cont.id)}>{cont.author}的续写</span>
           <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 4 : 8 }}>
-            <button onClick={handleLike} className={`transition-colors ${liked ? 'text-red-500' : 'text-gray-400 hover:text-red-500'}`} title="有价值">
+            <button
+              onTouchEnd={(e) => { e.preventDefault(); handleLike(e); }}
+              onClick={handleLike}
+              className={`${liked ? 'text-red-500' : 'text-gray-400 hover:text-red-500'}`}
+              title="有价值"
+            >
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M2 10.5a1.5 1.5 0 113 0v6a1.5 1.5 0 01-3 0v-6zM6 10.333v5.43a2 2 0 001.106 1.79l.05.025A4 4 0 008.943 18h5.416a2 2 0 001.962-1.608l1.2-6A2 2 0 0015.56 8H12V4a2 2 0 00-2-2 1 1 0 00-1 1v.667a4 4 0 01-.8 2.4L6.8 7.933a4 4 0 00-.8 2.4z" /></svg>
             </button>
             {showFocusBtn && <button onClick={handleFocusToggle} className={`text-xs px-2.5 py-1 rounded transition-colors ${isFocused ? 'bg-gray-700 text-white font-semibold' : 'bg-gray-200 hover:bg-gray-300 text-gray-700'}`}>{isFocused ? '退出聚焦' : '聚焦'}</button>}
@@ -471,7 +476,12 @@ export default function AnswerCard({ answers, currentPage, isLastPage, exerciseI
         <div className="flex justify-between items-center mb-3">
           <div className="flex items-center gap-3">
             <h3 className="font-bold text-lg">{ans.author} 的解答</h3>
-            <button onClick={handleAnswerLike} className={`transition-colors ${answerLiked ? 'text-red-500' : 'text-gray-400 hover:text-red-500'}`} title="有价值">
+            <button
+              onTouchEnd={(e) => { e.preventDefault(); handleAnswerLike(); }}
+              onClick={handleAnswerLike}
+              className={`${answerLiked ? 'text-red-500' : 'text-gray-400 hover:text-red-500'}`}
+              title="有价值"
+            >
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M2 10.5a1.5 1.5 0 113 0v6a1.5 1.5 0 01-3 0v-6zM6 10.333v5.43a2 2 0 001.106 1.79l.05.025A4 4 0 008.943 18h5.416a2 2 0 001.962-1.608l1.2-6A2 2 0 0015.56 8H12V4a2 2 0 00-2-2 1 1 0 00-1 1v.667a4 4 0 01-.8 2.4L6.8 7.933a4 4 0 00-.8 2.4z" /></svg>
             </button>
           </div>

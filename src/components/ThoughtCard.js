@@ -200,8 +200,9 @@ export default function ThoughtCard({
         <h3 className={`font-bold ${isMobile ? 'text-base' : 'text-lg'}`}>{thought.author}的思考区</h3>
         <div className="flex items-center gap-2">
           <button
+            onTouchEnd={(e) => { e.preventDefault(); handleLike(); }}
             onClick={handleLike}
-            className={`transition-colors ${liked ? 'text-red-500' : 'text-gray-400 hover:text-red-500'}`}
+            className={`${liked ? 'text-red-500' : 'text-gray-400 hover:text-red-500'}`}
             title="有价值"
           >
             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">

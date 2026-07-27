@@ -17,17 +17,22 @@ export default function HomePage() {
   const [showAddBook, setShowAddBook] = useState(false);
 
   // 检查 URL 参数，自动打开登录弹窗
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search);
-      if (params.get('login') === '1') {
-        setShowAuthModal(true);
-        const url = new URL(window.location.href);
-        url.searchParams.delete('login');
-        window.history.replaceState({}, document.title, url.pathname + url.search);
-      }
+useEffect(() => {
+  if (typeof window !== 'undefined') {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('login') === '1') {
+      setShowAuthModal(true);
     }
-  }, []);
+    if (params.get('addBook') === '1') {
+      setShowAddBook(true);
+    }
+    // 清除参数
+    const url = new URL(window.location.href);
+    url.searchParams.delete('login');
+    url.searchParams.delete('addBook');
+    window.history.replaceState({}, document.title, url.pathname + url.search);
+  }
+}, []);
 
   useEffect(() => {
     fetch('/api/books/hot')

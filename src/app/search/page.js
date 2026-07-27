@@ -28,7 +28,16 @@ function SearchContent() {
       {loading ? (
         <p className="text-sm text-gray-400">搜索中...</p>
       ) : results.length === 0 ? (
-        <p className="text-sm text-gray-400">未找到相关书籍</p>
+        <div className="text-sm text-gray-500">
+          未找到相关书籍。如果你觉得这本书值得讨论，可以
+          <button
+            onClick={() => router.push('/?addBook=1')}
+            className="text-gray-800 underline hover:text-black mx-1"
+          >
+            点击此处添加书籍
+          </button>
+          ，管理员会尽快处理。
+        </div>
       ) : (
         <div className="space-y-4">
           {results.map(book => (

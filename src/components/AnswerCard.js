@@ -486,10 +486,32 @@ export default function AnswerCard({ answers, currentPage, isLastPage, exerciseI
             </button>
           </div>
           <div className="flex items-center gap-2">
-            <button onClick={(e) => { e.stopPropagation(); cutMode ? handleCancelCut() : handleEnterCutMode(); }}
-              className={`text-sm px-3 py-1 rounded transition-colors ${cutMode ? 'bg-gray-700 text-white font-semibold' : 'bg-gray-200 hover:bg-gray-300 text-gray-700'}`}>
-              {cutMode ? '取消续写' : '续写'}
-            </button>
+            {cutMode ? (
+              <>
+                <span className="text-sm text-gray-600 bg-gray-100 px-3 py-1 rounded">
+                  请点击解答内容中的任意字符
+                </span>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleCancelCut();
+                  }}
+                  className="text-sm px-3 py-1 rounded border border-gray-300 text-gray-600 hover:bg-gray-100"
+                >
+                  取消
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleEnterCutMode();
+                }}
+                className="text-sm px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 text-gray-700"
+              >
+                续写
+              </button>
+            )}
           </div>
         </div>
         <div ref={answerTextRef} onContextMenu={handleContextMenu} onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd} style={{ touchAction: 'manipulation' }}>

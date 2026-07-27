@@ -16,7 +16,7 @@ function SectionContent() {
   const [nodePath, setNodePath] = useState([]);
   const [currentNode, setCurrentNode] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false); // 初始值会在 useEffect 中根据屏幕宽度调整
   const [selectedQuestionId, setSelectedQuestionId] = useState(null);
   const [showNewDiscussion, setShowNewDiscussion] = useState(true);
   const [discussionType, setDiscussionType] = useState('question');
@@ -42,6 +42,16 @@ function SectionContent() {
   useEffect(() => {
     const clicked = localStorage.getItem('thinkfield-toc-clicked');
     if (!clicked) setTocGlow(true);
+  }, []);
+
+  // 根据屏幕宽度初始化侧边栏状态，并监听窗口变化
+  useEffect(() => {
+    const handleResize = () => {
+      setSidebarOpen(window.innerWidth >= 768);
+    };
+    handleResize(); // 立即执行一次
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   const findNodeAndPath = (tree, targetId, path = []) => {
@@ -298,7 +308,7 @@ function SectionContent() {
       </button>
 
       {/* 右侧内容区 */}
-      <div className="flex-1 min-h-0 scroll-container p-4 md:p-8 pb-8 relative pt-12 md:pt-0" style={{ WebkitMaskImage: 'linear-gradient(to bottom, black 92%, transparent 100%)', maskImage: 'linear-gradient(to bottom, black 92%, transparent 100%)' }}>
+      <div className="flex-1 min-h-0 scroll-container p-4 md:p-8 pb-8 relative pt-14 md:pt-0" style={{ WebkitMaskImage: 'linear-gradient(to bottom, black 92%, transparent 100%)', maskImage: 'linear-gradient(to bottom, black 92%, transparent 100%)' }}>
         {showNewDiscussion ? (
           <div className="max-w-xl mx-auto">
             <h2 className="text-lg font-medium text-gray-800 mb-6">发起新讨论</h2>

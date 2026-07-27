@@ -17,7 +17,7 @@ function ExercisesContent() {
   const [bookType, setBookType] = useState('science');
   const [sectionTitle, setSectionTitle] = useState('习题');
   const [loading, setLoading] = useState(true);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false); // 初始值会在 useEffect 中根据屏幕宽度调整
   const [selectedExerciseId, setSelectedExerciseId] = useState(null);
   const [showAddExercise, setShowAddExercise] = useState(true);
   const [newTitle, setNewTitle] = useState('');
@@ -38,6 +38,16 @@ function ExercisesContent() {
   useEffect(() => {
     const clicked = localStorage.getItem('thinkfield-toc-clicked');
     if (!clicked) setTocGlow(true);
+  }, []);
+
+  // 根据屏幕宽度初始化侧边栏状态，并监听窗口变化
+  useEffect(() => {
+    const handleResize = () => {
+      setSidebarOpen(window.innerWidth >= 768);
+    };
+    handleResize(); // 立即执行一次
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   const findNodeAndPath = (tree, targetId, path = []) => {
@@ -223,7 +233,7 @@ function ExercisesContent() {
       </button>
 
       {/* 右侧内容区 */}
-      <div className="flex-1 min-h-0 scroll-container p-4 md:p-8 pb-8 pt-12 md:pt-0" style={{ WebkitMaskImage: 'linear-gradient(to bottom, black 92%, transparent 100%)', maskImage: 'linear-gradient(to bottom, black 92%, transparent 100%)' }}>
+      <div className="flex-1 min-h-0 scroll-container p-4 md:p-8 pb-8 pt-14 md:pt-0" style={{ WebkitMaskImage: 'linear-gradient(to bottom, black 92%, transparent 100%)', maskImage: 'linear-gradient(to bottom, black 92%, transparent 100%)' }}>
         {showAddExercise ? (
           <div className="max-w-xl mx-auto">
             <h2 className="text-lg font-medium text-gray-800 mb-4">添加新习题</h2>

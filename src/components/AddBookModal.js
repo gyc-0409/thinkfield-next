@@ -138,13 +138,13 @@ export default function AddBookModal({ onClose }) {
             <h2 className="text-xl font-medium text-gray-800 mb-4">添加新书籍</h2>
             {error && <p className="text-red-500 text-sm mb-3">{error}</p>}
             <div className="space-y-3">
-              // 书名输入框
+               书名
               <input value={title} onChange={e => setTitle(e.target.value)} placeholder="书名"
                 className="w-full border border-gray-200 p-2.5 rounded-md text-sm focus:outline-none focus:border-gray-400 placeholder:text-gray-400" />
-              // 作者输入框
+               作者
               <input value={author} onChange={e => setAuthor(e.target.value)} placeholder="作者"
                 className="w-full border border-gray-200 p-2.5 rounded-md text-sm focus:outline-none focus:border-gray-400 placeholder:text-gray-400" />
-              // 版本输入框
+               版本
               <input value={edition} onChange={e => setEdition(e.target.value)} placeholder="版本"
                 className="w-full border border-gray-200 p-2.5 rounded-md text-sm focus:outline-none focus:border-gray-400 placeholder:text-gray-400" />
             </div>

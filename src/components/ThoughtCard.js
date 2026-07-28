@@ -79,7 +79,7 @@ export default function ThoughtCard({
     }, 3000);
   }, []);
 
-  // 右键引用（支持公式直接右键）
+  // 右键引用（支持公式直接右键，以及文字+公式混合选区）
   useEffect(() => {
     if (!contentRef.current || !thought) return;
     const el = contentRef.current;
@@ -87,38 +87,84 @@ export default function ThoughtCard({
     const handler = (e) => {
       if (!requireLogin()) return;
 
+      // 情况1：右键直接点击了公式（没有选区或选区折叠）
       const formulaSpan = e.target.closest('.math-formula');
-      if (formulaSpan) {
+      const selection = window.getSelection();
+      if (formulaSpan && (!selection.rangeCount || selection.isCollapsed)) {
         e.preventDefault();
         e.stopPropagation();
         const formulaText = formulaSpan.getAttribute('data-formula');
-        if (!formulaText) return;
-        let idx = parseInt(formulaSpan.getAttribute('data-idx'));
-        let len = parseInt(formulaSpan.getAttribute('data-length'));
-        if (isNaN(idx) || isNaN(len)) {
-          const searchIdx = thought.content.indexOf(formulaText);
-          if (searchIdx === -1) return;
-          idx = searchIdx;
-          len = formulaText.length;
+        const idx = parseInt(formulaSpan.getAttribute('data-idx'));
+        const len = parseInt(formulaSpan.getAttribute('data-length'));
+        if (!isNaN(idx) && len) {
+          onQuote(formulaText, idx, idx + len);
+          return;
         }
-        const start = idx;
-        const end = idx + len;
-        const selectedText = formulaText;
-        onQuote(selectedText, start, end);
-        return;
       }
 
+      // 情况2：选区非空（包括纯文字、纯公式、混合）
+      if (!selection.rangeCount || selection.isCollapsed) return;
+
       e.preventDefault();
-      const selection = window.getSelection();
-      const selectedText = selection.toString().trim();
-      if (!selectedText) return;
+      const range = selection.getRangeAt(0);
+      if (!el.contains(range.commonAncestorContainer)) return;
 
-      const fullText = thought.content;
-      const start = fullText.indexOf(selectedText);
-      if (start === -1) return;
-      const end = start + selectedText.length;
+      // 遍历选区内所有文本节点，收集索引
+      let minIdx = Infinity;
+      let maxIdx = -Infinity;
 
-      onQuote(selectedText, start, end);
+      const treeWalker = document.createTreeWalker(
+        range.commonAncestorContainer,
+        NodeFilter.SHOW_TEXT,
+        {
+          acceptNode: function (node) {
+            // 只接受在选区内或与选区相交的文本节点
+            if (range.intersectsNode(node)) {
+              return NodeFilter.FILTER_ACCEPT;
+            }
+            return NodeFilter.FILTER_REJECT;
+          },
+        }
+      );
+
+      const textNodes = [];
+      while (treeWalker.nextNode()) {
+        textNodes.push(treeWalker.currentNode);
+      }
+
+      for (const textNode of textNodes) {
+        // 找到该文本节点所在的 char-span 或 math-formula
+        let parent = textNode.parentElement;
+        while (parent && parent !== el) {
+          if (parent.classList.contains('char-span')) {
+            const idx = parseInt(parent.getAttribute('data-idx'));
+            if (!isNaN(idx)) {
+              // char-span 每个字符一个 data-idx，文本节点内容就是它的 textContent
+              // 考虑文本节点可能被部分选中，但这里简化处理：只要文本节点被选中，整个 char-span 的索引就纳入范围
+              minIdx = Math.min(minIdx, idx);
+              maxIdx = Math.max(maxIdx, idx);
+            }
+            break;
+          } else if (parent.classList.contains('math-formula')) {
+            const idx = parseInt(parent.getAttribute('data-idx'));
+            const len = parseInt(parent.getAttribute('data-length'));
+            if (!isNaN(idx) && !isNaN(len)) {
+              const formulaEnd = idx + len;
+              minIdx = Math.min(minIdx, idx);
+              maxIdx = Math.max(maxIdx, formulaEnd - 1);
+            }
+            break;
+          }
+          parent = parent.parentElement;
+        }
+      }
+
+      if (minIdx === Infinity || maxIdx === -Infinity) return;
+
+      const start = minIdx;
+      const end = maxIdx + 1; // end 是开区间
+      const quoteText = thought.content.substring(start, end);
+      onQuote(quoteText, start, end);
     };
 
     el.addEventListener('contextmenu', handler);
@@ -144,30 +190,24 @@ export default function ThoughtCard({
     setSubmitting(false);
   };
 
-  // 点赞/取消点赞（乐观更新）
+  // 点赞（乐观更新）
   const handleLike = async () => {
     if (!requireLogin()) return;
     const wasLiked = liked;
-    // 立即切换 UI
     setLiked(!wasLiked);
     setLikes(prev => wasLiked ? Math.max(prev - 1, 0) : prev + 1);
-
     try {
       const res = await fetch(`/api/questions/${questionId}/thoughts/${thought.id}/like`, {
         method: 'POST',
       });
       if (!res.ok) {
-        // 请求失败，回滚状态
         setLiked(wasLiked);
         setLikes(prev => wasLiked ? prev + 1 : Math.max(prev - 1, 0));
       } else {
-        // 成功，用服务器返回的值校准（可选）
         const data = await res.json();
         setLikes(data.likes);
-        // 不再调用 onThoughtAdded()，避免全量刷新
       }
     } catch (e) {
-      // 网络错误，回滚
       setLiked(wasLiked);
       setLikes(prev => wasLiked ? prev + 1 : Math.max(prev - 1, 0));
     }

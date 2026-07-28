@@ -4,10 +4,18 @@ import './globals.css';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import LoginRequiredModal from '@/components/LoginRequiredModal';
+import { useEffect } from 'react';
 
 function AppContent({ children }) {
   const { loginRequiredVisible, hideLoginRequired } = useAuth();
   const router = useRouter();
+
+  // 注册 Service Worker
+  useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js');
+    }
+  }, []);
 
   const handleGoLogin = () => {
     hideLoginRequired();

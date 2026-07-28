@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import LoadingDots from '@/components/LoadingDots';
 
 export default function UserBooksGrid({ books: propBooks }) {
   const router = useRouter();
@@ -20,7 +21,7 @@ export default function UserBooksGrid({ books: propBooks }) {
       .finally(() => setLoading(false));
   }, [propBooks]);
 
-  if (loading) return <p className="text-sm text-gray-400">加载中...</p>;
+  if (loading) return <LoadingDots text="加载中" />;
   if (books.length === 0) return null;
 
   return (

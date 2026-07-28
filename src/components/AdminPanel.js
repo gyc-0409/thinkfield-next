@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
+import LoadingDots from '@/components/LoadingDots';
 
 export default function AdminPanel({ onClose }) {
   const { user, role } = useAuth();
@@ -168,7 +169,7 @@ export default function AdminPanel({ onClose }) {
           <div>
             <h3 className="font-medium mb-3">举报列表</h3>
             {loadingReports ? (
-              <p className="text-gray-500 text-sm">加载中...</p>
+              <LoadingDots />
             ) : reports.length === 0 ? (
               <p className="text-gray-500 text-sm">暂无举报</p>
             ) : (
@@ -207,7 +208,7 @@ export default function AdminPanel({ onClose }) {
           <div>
             <h3 className="font-medium mb-3">书籍申请</h3>
             {loadingRequests ? (
-              <p className="text-gray-500 text-sm">加载中...</p>
+              <LoadingDots />
             ) : bookRequests.length === 0 ? (
               <p className="text-gray-500 text-sm">暂无待处理的书籍申请</p>
             ) : (

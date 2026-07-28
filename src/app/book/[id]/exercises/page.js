@@ -5,6 +5,7 @@ import { useAuth } from '@/context/AuthContext';
 import ExerciseDetail from '@/components/ExerciseDetail';
 import LatexPreviewGroup from '@/components/LatexPreviewGroup';
 import { renderLatexToHTML } from '@/lib/renderLatex';
+import LoadingDots from '@/components/LoadingDots';
 
 function ExercisesContent() {
   const { id: bookId } = useParams();
@@ -133,7 +134,7 @@ function ExercisesContent() {
     navigate(`/book/${bookId}/section/${nodeId}`);
   };
 
-  if (loading) return <p className="p-8 text-gray-500">加载中...</p>;
+  if (loading) return <div className="p-8 flex justify-center"><LoadingDots /></div>;
 
   const showPreview = bookType !== 'literature';
 
@@ -257,7 +258,7 @@ function ExercisesContent() {
 
 export default function ExercisesPage() {
   return (
-    <Suspense fallback={<p className="p-8 text-gray-500">加载中...</p>}>
+    <Suspense fallback={<div className="p-8 flex justify-center"><LoadingDots /></div>}>
       <ExercisesContent />
     </Suspense>
   );

@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import AnswerCard from '@/components/AnswerCard';
 import { renderLatexToHTML } from '@/lib/renderLatex';
+import LoadingDots from '@/components/LoadingDots';
 
 export default function ExerciseDetail({ exerciseId, bookType }) {
   const [exercise, setExercise] = useState(null);
@@ -41,7 +42,7 @@ export default function ExerciseDetail({ exerciseId, bookType }) {
     fetchExercise();
   }, [fetchExercise]);
 
-  if (loading) return <p className="text-gray-500">加载中...</p>;
+  if (loading) return <LoadingDots />;
   if (!exercise) return <p className="text-red-500">习题不存在</p>;
 
   const totalPages = answers.length + 1;

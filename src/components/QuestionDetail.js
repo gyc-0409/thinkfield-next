@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import ThoughtCard from '@/components/ThoughtCard';
 import { renderLatexToHTML } from '@/lib/renderLatex';
+import LoadingDots from '@/components/LoadingDots';
 
 export default function QuestionDetail({ questionId, bookType }) {
   const { user } = useAuth();
@@ -93,7 +94,7 @@ export default function QuestionDetail({ questionId, bookType }) {
     if (thought) fetchComments(thought.id);
   };
 
-  if (loading) return <p className="text-gray-500 p-4">加载中...</p>;
+  if (loading) return <div className="p-4 flex justify-center"><LoadingDots /></div>;
   if (!question) return <p className="text-red-500 p-4">问题不存在</p>;
 
   const totalPages = thoughts.length + 1;

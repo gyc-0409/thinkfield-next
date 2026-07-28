@@ -6,6 +6,7 @@ import QuestionDetail from '@/components/QuestionDetail';
 import BookTree from '@/components/BookTree';
 import LatexPreviewGroup from '@/components/LatexPreviewGroup';
 import { renderLatexToHTML } from '@/lib/renderLatex';
+import LoadingDots from '@/components/LoadingDots';
 
 function SectionContent() {
   const { id: bookId, nodeId } = useParams();
@@ -111,7 +112,7 @@ function SectionContent() {
     }
   };
 
-  if (loading) return <p className="p-8 text-gray-500">加载中...</p>;
+  if (loading) return <div className="p-8 flex justify-center"><LoadingDots /></div>;
 
   const handleNewDiscussion = () => {
     setShowNewDiscussion(true);
@@ -356,7 +357,7 @@ function SectionContent() {
 
 export default function SectionPage() {
   return (
-    <Suspense fallback={<p className="p-8 text-gray-500">加载中...</p>}>
+    <Suspense fallback={<div className="p-8 flex justify-center"><LoadingDots /></div>}>
       <SectionContent />
     </Suspense>
   );

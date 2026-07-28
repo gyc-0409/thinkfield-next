@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
+import LoadingDots from '@/components/LoadingDots';
 
 function SearchContent() {
   const searchParams = useSearchParams();
@@ -26,7 +27,7 @@ function SearchContent() {
         搜索 &ldquo;{query}&rdquo; 的结果
       </h2>
       {loading ? (
-        <p className="text-sm text-gray-400">搜索中...</p>
+        <LoadingDots text="搜索中" />
       ) : results.length === 0 ? (
         <p className="text-sm text-gray-400">未找到相关书籍</p>
       ) : (

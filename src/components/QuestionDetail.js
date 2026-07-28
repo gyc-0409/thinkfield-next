@@ -2,65 +2,40 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import ThoughtCard from '@/components/ThoughtCard';
-import { renderLatexToHTML } from '@/lib/renderLatex';
 import LoadingDots from '@/components/LoadingDots';
+import { renderLatexToHTML } from '@/lib/renderLatex';
+import useSWR from 'swr';
+import { fetcher } from '@/lib/fetcher';
 
 export default function QuestionDetail({ questionId, bookType }) {
   const { user } = useAuth();
-  const [question, setQuestion] = useState(null);
-  const [thoughts, setThoughts] = useState([]);
   const [currentThoughtPage, setCurrentThoughtPage] = useState(0);
-  const [comments, setComments] = useState([]);
-  const [loading, setLoading] = useState(true);
-
   const [quoteText, setQuoteText] = useState('');
   const [quoteStart, setQuoteStart] = useState(0);
   const [quoteEnd, setQuoteEnd] = useState(0);
   const [replyParentId, setReplyParentId] = useState(null);
   const [replyAuthor, setReplyAuthor] = useState('');
 
-  const fetchQuestion = useCallback(async () => {
-    if (!questionId) return;
-    try {
-      const res = await fetch(`/api/questions/${questionId}`);
-      const data = await res.json();
-      if (data.error) return;
-      setQuestion(data);
-      setThoughts(data.thoughts || []);
-      setCurrentThoughtPage(0);
-    } catch (e) {
-      console.error(e);
-    }
-    setLoading(false);
-  }, [questionId]);
+  // 问题数据
+  const { data: question, error, mutate } = useSWR(
+    questionId ? `/api/questions/${questionId}` : null,
+    fetcher
+  );
+
+  const thoughts = question?.thoughts || [];
+  const currentThoughtId = thoughts[currentThoughtPage]?.id;
+
+  // 评论数据（SWR 自动缓存）
+  const { data: comments = [] } = useSWR(
+    currentThoughtId ? `/api/questions/${questionId}/threads?thoughtId=${currentThoughtId}` : null,
+    fetcher
+  );
 
   useEffect(() => {
-    fetchQuestion();
-  }, [fetchQuestion]);
-
-  useEffect(() => {
+    setCurrentThoughtPage(0);
     clearQuote();
     clearReply();
   }, [questionId]);
-
-  const fetchComments = useCallback(async (thoughtId) => {
-    try {
-      const res = await fetch(`/api/questions/${questionId}/threads?thoughtId=${thoughtId}`);
-      const data = await res.json();
-      setComments(Array.isArray(data) ? data : []);
-    } catch (e) {
-      console.error(e);
-    }
-  }, [questionId]);
-
-  useEffect(() => {
-    const thought = thoughts[currentThoughtPage];
-    if (thought) {
-      fetchComments(thought.id);
-    } else {
-      setComments([]);
-    }
-  }, [currentThoughtPage, thoughts, fetchComments]);
 
   const handleQuote = (text, start, end) => {
     setQuoteText(text);
@@ -89,17 +64,11 @@ export default function QuestionDetail({ questionId, bookType }) {
     setReplyAuthor('');
   };
 
-  const handleCommentPosted = () => {
-    const thought = thoughts[currentThoughtPage];
-    if (thought) fetchComments(thought.id);
-  };
-
-  if (loading) return <div className="p-4 flex justify-center"><LoadingDots /></div>;
-  if (!question) return <p className="text-red-500 p-4">问题不存在</p>;
+  if (error) return <p className="text-red-500 p-4">加载失败</p>;
+  if (!question) return <div className="p-4 flex justify-center"><LoadingDots /></div>;
 
   const totalPages = thoughts.length + 1;
   const isLastPage = currentThoughtPage === thoughts.length;
-  const currentThoughtId = thoughts[currentThoughtPage]?.id;
 
   return (
     <div className="h-full flex flex-col pt-14 md:pt-0">
@@ -117,7 +86,7 @@ export default function QuestionDetail({ questionId, bookType }) {
           currentPage={currentThoughtPage}
           isLastPage={isLastPage}
           questionId={questionId}
-          onThoughtAdded={fetchQuestion}
+          onThoughtAdded={mutate}
           onQuote={handleQuote}
           comments={comments}
           onReply={handleReply}
@@ -128,7 +97,6 @@ export default function QuestionDetail({ questionId, bookType }) {
           replyAuthor={replyAuthor}
           onClearQuote={clearQuote}
           onClearReply={clearReply}
-          onCommentPosted={handleCommentPosted}
           currentThoughtId={currentThoughtId}
           currentUser={user}
           bookType={bookType}

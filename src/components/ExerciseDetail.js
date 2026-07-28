@@ -1,34 +1,23 @@
 'use client';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import AnswerCard from '@/components/AnswerCard';
-import { renderLatexToHTML } from '@/lib/renderLatex';
 import LoadingDots from '@/components/LoadingDots';
+import { renderLatexToHTML } from '@/lib/renderLatex';
+import useSWR from 'swr';
+import { fetcher } from '@/lib/fetcher';
 
 export default function ExerciseDetail({ exerciseId, bookType }) {
-  const [exercise, setExercise] = useState(null);
-  const [answers, setAnswers] = useState([]);
   const [currentPage, setCurrentPage] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const prevAnswersLengthRef = useRef(answers.length);
+  const prevAnswersLengthRef = useRef(0);
 
-  const fetchExercise = useCallback(async () => {
-    if (!exerciseId) return;
-    try {
-      const res = await fetch(`/api/exercises/${exerciseId}`);
-      const data = await res.json();
-      if (data.error) return;
-      setExercise(data);
-      setAnswers(data.answers || []);
-    } catch (e) {
-      console.error(e);
-    }
-    setLoading(false);
-  }, [exerciseId]);
+  const { data: exercise, error, mutate } = useSWR(
+    exerciseId ? `/api/exercises/${exerciseId}` : null,
+    fetcher
+  );
 
-  useEffect(() => {
-    fetchExercise();
-  }, [fetchExercise]);
+  const answers = exercise?.answers || [];
 
+  // 处理页面跳转（添加解答后自动跳转到新解答）
   useEffect(() => {
     const prevLen = prevAnswersLengthRef.current;
     const newLen = answers.length;
@@ -39,11 +28,11 @@ export default function ExerciseDetail({ exerciseId, bookType }) {
   }, [answers, currentPage]);
 
   const handleAnswerAdded = useCallback(() => {
-    fetchExercise();
-  }, [fetchExercise]);
+    mutate();
+  }, [mutate]);
 
-  if (loading) return <LoadingDots />;
-  if (!exercise) return <p className="text-red-500">习题不存在</p>;
+  if (error) return <p className="text-red-500">加载失败</p>;
+  if (!exercise) return <div className="p-4 flex justify-center"><LoadingDots /></div>;
 
   const totalPages = answers.length + 1;
   const isLastPage = currentPage === answers.length;

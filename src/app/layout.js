@@ -1,4 +1,5 @@
 'use client';
+import 'core-js/stable';
 import './globals.css';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';

@@ -119,3 +119,22 @@ body {
   display: inline-block;
   animation: bounce-dot 1.2s infinite;
 }
+/* 降级 backdrop-filter：若不支持，使用纯色半透明背景 */
+@supports not (backdrop-filter: blur(4px)) {
+  .backdrop-blur-fallback {
+    background-color: rgba(0, 0, 0, 0.7) !important;
+  }
+}
+
+/* 降级 line-clamp：若不支持，使用 max-height 截断 */
+@supports not (-webkit-line-clamp: 2) {
+  .line-clamp-2 {
+    max-height: 2.8em;
+    overflow: hidden;
+  }
+}
+@supports not (animation: slide-in 0.2s ease-out) {
+  .animate-slide-in {
+    animation: none;
+  }
+}

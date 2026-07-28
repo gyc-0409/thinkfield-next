@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
+    "core-js": "^3.49.0",
     "iron-session": "^8.0.4",
     "katex": "^0.18.1",
     "next": "16.2.11",
@@ -24,5 +25,11 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.11",
     "tailwindcss": "^4"
-  }
+  },
+  "browserslist": [
+    "> 0.5%",
+    "last 2 versions",
+    "not dead",
+    "not op_mini all"
+  ]
 }

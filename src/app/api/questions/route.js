@@ -12,14 +12,7 @@ export async function GET(request) {
   }
   try {
     const { rows } = await pool.query(
-      `SELECT * FROM questions 
-       WHERE book_id = $1 AND node_id = $2 
-       ORDER BY 
-         COALESCE((string_to_array(page_range, '-'))[1]::int, 0),
-         CASE WHEN page_range NOT LIKE '%-%' THEN 0 ELSE 1 END,
-         COALESCE((string_to_array(page_range, '-'))[2]::int, 0),
-         sort_order ASC,
-         id DESC`,
+      'SELECT * FROM questions WHERE book_id = $1 AND node_id = $2 ORDER BY sort_order ASC, id DESC',
       [bookId, nodeId]
     );
     return NextResponse.json(rows);
@@ -57,7 +50,7 @@ export async function POST(request) {
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18)`,
       [
         newId, bookId, nodeId, 0, 0, title, user, thought, location || '', type || 'question',
-        false, 0, 0, '[]', '[]', '[]', JSON.stringify([firstThought]), page_range || ''
+        false, 0, 0, '[]', '[]', '[]', JSON.stringify([firstThought]), page_range || null
       ]
     );
     return NextResponse.json({ id: newId, title });

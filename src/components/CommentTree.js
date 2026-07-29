@@ -64,7 +64,7 @@ function CommentItem({ comment, depth, questionId, thoughtId, onReply, onQuoteCl
         setLiked(!liked);
       }
     } catch (e) {
-      console.error(e);
+      // 忽略
     }
     setLoading(false);
   };

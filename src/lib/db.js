@@ -3,12 +3,17 @@ import { Pool } from 'pg';
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false },
+  // 连接池设置（针对 Railway 免费数据库限制）
+  max: 3,               // 最多 3 个连接，避免超过 Railway 限制
+  min: 0,               // 空闲时释放所有连接
+  idleTimeoutMillis: 10000,   // 空闲连接 10 秒后释放
   connectionTimeoutMillis: 5000,
-  idleTimeoutMillis: 30000,
+  // 开启 TCP keepalive，防止数据库端关闭空闲连接
+  keepAlive: true,
+  keepAliveInitialDelayMillis: 10000,
 });
 
 pool.on('error', (err) => {
-  // 保留错误日志（这是运行时错误，不是调试日志）
   console.error('[DB] 连接池错误:', err.message);
 });
 

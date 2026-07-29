@@ -315,25 +315,24 @@ function SectionContent() {
               <button onClick={() => { setDiscussionType('insight'); clearForm(); }} className={`flex-1 py-2.5 rounded-md text-sm font-medium transition-colors ${discussionType === 'insight' ? 'bg-gray-200 text-gray-900 ring-1 ring-gray-300' : 'bg-gray-100 text-gray-500 hover:bg-gray-150'}`}>分享见解</button>
             </div>
             {formError && <p className="text-red-500 text-sm mb-3">{formError}</p>}
-            <div className="flex gap-3">
-              <div className="w-24 flex-shrink-0">
-                <input
-                  value={pageRange}
-                  onChange={e => setPageRange(e.target.value)}
-                  placeholder="页码"
-                  className="w-full border border-gray-200 p-3 rounded-md text-sm focus:outline-none focus:border-gray-400 placeholder:text-gray-400"
-                />
-              </div>
-              <div className="flex-1">
-                <LatexPreviewGroup
-                  value={location}
-                  onChange={e => setLocation(e.target.value)}
-                  placeholder="本页中的具体位置（必填）。例如：定理2.1的证明中“由极限定义可知...”"
-                  rows={2}
-                  showPreview={showPreview}
-                />
-              </div>
-            </div>
+
+            {/* 页码输入 */}
+            <input
+              value={pageRange}
+              onChange={e => setPageRange(e.target.value)}
+              placeholder="页码（如 25 或 30-35）"
+              className="w-full border border-gray-200 p-3 rounded-md mb-3 text-sm focus:outline-none focus:border-gray-400 placeholder:text-gray-400"
+            />
+
+            {/* 具体位置 */}
+            <LatexPreviewGroup
+              value={location}
+              onChange={e => setLocation(e.target.value)}
+              placeholder={'本页中的具体位置（必填）。例如：定理2.1的证明中\u201C由极限定义可知...\u201D'}
+              rows={2}
+              showPreview={showPreview}
+            />
+
             {discussionType === 'question' && (
               <LatexPreviewGroup value={title} onChange={e => setTitle(e.target.value)} placeholder="你的疑问" rows={3} showPreview={showPreview} />
             )}

@@ -126,7 +126,7 @@ export default function AuthModal({ onClose }) {
           value={username}
           onChange={e => setUsername(e.target.value)}
           type="text"
-          placeholder="用户名或邮箱"
+          placeholder={isRegister ? '用户名' : '用户名或邮箱'}
           className="w-full border border-gray-200 p-2.5 rounded-md mb-3 text-sm focus:outline-none focus:border-gray-400 placeholder:text-gray-400"
           autoComplete="username"
         />

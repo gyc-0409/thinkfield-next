@@ -5,14 +5,20 @@ import { getCurrentUser } from '@/lib/auth';
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
   const bookId = searchParams.get('bookId');
-  const nodeId = searchParams.get('nodeId'); // 替换原来的 chapter/section
+  const nodeId = searchParams.get('nodeId');
 
   if (!bookId || !nodeId) {
     return NextResponse.json({ error: '参数错误' }, { status: 400 });
   }
   try {
     const { rows } = await pool.query(
-      'SELECT * FROM questions WHERE book_id = $1 AND node_id = $2 ORDER BY sort_order ASC, id DESC',
+      `SELECT * FROM questions 
+       WHERE book_id = $1 AND node_id = $2 
+       ORDER BY 
+         COALESCE((string_to_array(page_range, '-'))[1]::int, 0),
+         CASE WHEN page_range NOT LIKE '%-%' THEN 0 ELSE 1 END,
+         COALESCE((string_to_array(page_range, '-'))[2]::int, 0),
+         created_at ASC`,
       [bookId, nodeId]
     );
     return NextResponse.json(rows);
@@ -27,7 +33,7 @@ export async function POST(request) {
     return NextResponse.json({ error: '请先登录' }, { status: 401 });
   }
 
-  const { bookId, nodeId, title, thought, location, type } = await request.json();
+  const { bookId, nodeId, title, thought, location, type, page_range } = await request.json();
   if (!bookId || !nodeId || !title || !thought) {
     return NextResponse.json({ error: '缺少必要字段' }, { status: 400 });
   }
@@ -46,11 +52,11 @@ export async function POST(request) {
 
   try {
     await pool.query(
-      `INSERT INTO questions (id, book_id, node_id, chapter, section, title, author, thought, location, type, unlocked, views, likes, viewed_by, liked_by, comments, thoughts)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)`,
+      `INSERT INTO questions (id, book_id, node_id, chapter, section, title, author, thought, location, type, unlocked, views, likes, viewed_by, liked_by, comments, thoughts, page_range)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18)`,
       [
         newId, bookId, nodeId, 0, 0, title, user, thought, location || '', type || 'question',
-        false, 0, 0, '[]', '[]', '[]', JSON.stringify([firstThought])
+        false, 0, 0, '[]', '[]', '[]', JSON.stringify([firstThought]), page_range || ''
       ]
     );
     return NextResponse.json({ id: newId, title });

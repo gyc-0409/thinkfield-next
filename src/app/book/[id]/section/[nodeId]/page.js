@@ -6,7 +6,6 @@ import QuestionDetail from '@/components/QuestionDetail';
 import BookTree from '@/components/BookTree';
 import LatexPreviewGroup from '@/components/LatexPreviewGroup';
 import { renderLatexToHTML } from '@/lib/renderLatex';
-import LoadingDots from '@/components/LoadingDots';
 
 function SectionContent() {
   const { id: bookId, nodeId } = useParams();
@@ -17,7 +16,7 @@ function SectionContent() {
   const [nodePath, setNodePath] = useState([]);
   const [currentNode, setCurrentNode] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [sidebarOpen, setSidebarOpen] = useState(false); // 初始值会在 useEffect 中根据屏幕宽度调整
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [selectedQuestionId, setSelectedQuestionId] = useState(null);
   const [showNewDiscussion, setShowNewDiscussion] = useState(true);
   const [discussionType, setDiscussionType] = useState('question');
@@ -25,6 +24,7 @@ function SectionContent() {
 
   const [title, setTitle] = useState('');
   const [location, setLocation] = useState('');
+  const [pageRange, setPageRange] = useState('');
   const [thought, setThought] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState('');
@@ -45,12 +45,11 @@ function SectionContent() {
     if (!clicked) setTocGlow(true);
   }, []);
 
-  // 根据屏幕宽度初始化侧边栏状态，并监听窗口变化
   useEffect(() => {
     const handleResize = () => {
       setSidebarOpen(window.innerWidth >= 768);
     };
-    handleResize(); // 立即执行一次
+    handleResize();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
@@ -112,7 +111,7 @@ function SectionContent() {
     }
   };
 
-  if (loading) return <div className="p-8 flex justify-center"><LoadingDots /></div>;
+  if (loading) return <p className="p-8 text-gray-500">加载中...</p>;
 
   const handleNewDiscussion = () => {
     setShowNewDiscussion(true);
@@ -129,6 +128,7 @@ function SectionContent() {
   const clearForm = () => {
     setTitle('');
     setLocation('');
+    setPageRange('');
     setThought('');
     setFormError('');
   };
@@ -148,6 +148,7 @@ function SectionContent() {
           bookId, nodeId,
           title: discussionType === 'question' ? title : `关于"${location}"的见解`,
           thought, location,
+          page_range: pageRange,
           type: discussionType,
         }),
       });
@@ -195,24 +196,20 @@ function SectionContent() {
 
   return (
     <div className="fixed inset-0 z-10 flex overflow-hidden bg-white">
-      {/* 手机端顶部栏：列表 | 节名 | 目录 */}
+      {/* 手机端顶部栏 */}
       <div className="md:hidden fixed top-0 left-0 right-0 z-20 flex items-center justify-between px-3 py-2 border-b border-gray-200 bg-white">
         <button onClick={() => setSidebarOpen(true)} className="text-gray-600 hover:bg-gray-100 px-2 py-1 rounded text-sm border border-gray-200">
           列表
         </button>
         <h2 className="text-sm font-medium text-gray-800 truncate flex-1 text-center">{sectionTitle}</h2>
-        <button
-          onClick={handleTocClick}
-          className={`text-gray-400 hover:text-gray-600 p-1 ${tocGlow ? 'btn-glow' : ''}`}
-          title="目录"
-        >
+        <button onClick={handleTocClick} className={`text-gray-400 hover:text-gray-600 p-1 ${tocGlow ? 'btn-glow' : ''}`} title="目录">
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
           </svg>
         </button>
       </div>
 
-      {/* 手机端抽屉侧边栏（背景模糊） */}
+      {/* 手机端抽屉侧边栏 */}
       {sidebarOpen && (
         <div className="md:hidden fixed inset-0 z-30 flex">
           <div className="absolute inset-0" style={{ backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }} onClick={() => setSidebarOpen(false)} />
@@ -248,7 +245,7 @@ function SectionContent() {
                           </button>
                         )}
                       </div>
-                      <div className="text-xs text-gray-400 mt-0.5">{q.author} · {q.replies} 回复</div>
+                      <div className="text-xs text-gray-400 mt-0.5">{q.author} · {q.replies} 回复{q.page_range ? ` · 页码 ${q.page_range}` : ''}</div>
                     </div>
                   ))}
                 </div>
@@ -258,7 +255,7 @@ function SectionContent() {
         </div>
       )}
 
-      {/* 桌面端侧边栏（原有风格） */}
+      {/* 桌面端侧边栏 */}
       <div className={`hidden md:flex ${sidebarOpen ? 'w-72' : 'w-0'} transition-all duration-200 border-r border-gray-200 flex-col h-full overflow-hidden`}>
         <div className="p-4 border-b border-gray-100 flex items-center justify-between">
           <h2 className="text-sm font-medium text-gray-800 truncate">{sectionTitle}</h2>
@@ -295,7 +292,7 @@ function SectionContent() {
                       </button>
                     )}
                   </div>
-                  <div className="text-xs text-gray-400 mt-0.5">{q.author} · {q.replies} 回复</div>
+                  <div className="text-xs text-gray-400 mt-0.5">{q.author} · {q.replies} 回复{q.page_range ? ` · 页码 ${q.page_range}` : ''}</div>
                 </div>
               ))}
             </div>
@@ -318,7 +315,25 @@ function SectionContent() {
               <button onClick={() => { setDiscussionType('insight'); clearForm(); }} className={`flex-1 py-2.5 rounded-md text-sm font-medium transition-colors ${discussionType === 'insight' ? 'bg-gray-200 text-gray-900 ring-1 ring-gray-300' : 'bg-gray-100 text-gray-500 hover:bg-gray-150'}`}>分享见解</button>
             </div>
             {formError && <p className="text-red-500 text-sm mb-3">{formError}</p>}
-            <LatexPreviewGroup value={location} onChange={e => setLocation(e.target.value)} placeholder={'本节中的具体位置（必填）。例如：定理2.1的证明中\u201C由极限定义可知...\u201D'} rows={2} showPreview={showPreview} />
+            <div className="flex gap-3">
+              <div className="w-24 flex-shrink-0">
+                <input
+                  value={pageRange}
+                  onChange={e => setPageRange(e.target.value)}
+                  placeholder="页码"
+                  className="w-full border border-gray-200 p-3 rounded-md text-sm focus:outline-none focus:border-gray-400 placeholder:text-gray-400"
+                />
+              </div>
+              <div className="flex-1">
+                <LatexPreviewGroup
+                  value={location}
+                  onChange={e => setLocation(e.target.value)}
+                  placeholder="本页中的具体位置（必填）。例如：定理2.1的证明中“由极限定义可知...”"
+                  rows={2}
+                  showPreview={showPreview}
+                />
+              </div>
+            </div>
             {discussionType === 'question' && (
               <LatexPreviewGroup value={title} onChange={e => setTitle(e.target.value)} placeholder="你的疑问" rows={3} showPreview={showPreview} />
             )}
@@ -357,7 +372,7 @@ function SectionContent() {
 
 export default function SectionPage() {
   return (
-    <Suspense fallback={<div className="p-8 flex justify-center"><LoadingDots /></div>}>
+    <Suspense fallback={<p className="p-8 text-gray-500">加载中...</p>}>
       <SectionContent />
     </Suspense>
   );

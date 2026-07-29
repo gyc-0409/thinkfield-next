@@ -10,21 +10,17 @@ export function AuthProvider({ children }) {
   const [loginRequiredVisible, setLoginRequiredVisible] = useState(false);
 
   const refreshUser = useCallback(async () => {
-    console.log('[AuthContext] 刷新用户状态...');
     try {
       const res = await fetch('/api/user');
       if (res.ok) {
         const data = await res.json();
-        console.log('[AuthContext] 已登录:', data.username);
         setUser(data.username);
         setRole(data.role);
       } else {
-        console.log('[AuthContext] 未登录');
         setUser(null);
         setRole(null);
       }
     } catch (e) {
-      console.error('[AuthContext] 获取用户失败:', e);
       setUser(null);
       setRole(null);
     }
@@ -40,23 +36,17 @@ export function AuthProvider({ children }) {
     const body = isRegister
       ? { username, password, email, university, code }
       : { username, password };
-    console.log('[AuthContext] 发送登录/注册请求:', url);
     const res = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
     });
     const data = await res.json();
-    if (!res.ok) {
-      console.error('[AuthContext] 登录/注册失败:', data.error);
-      throw new Error(data.error || '请求失败');
-    }
-    console.log('[AuthContext] 登录/注册成功');
+    if (!res.ok) throw new Error(data.error || '请求失败');
     await refreshUser();
   };
 
   const logout = async () => {
-    console.log('[AuthContext] 退出登录');
     await fetch('/api/logout', { method: 'POST' });
     setUser(null);
     setRole(null);

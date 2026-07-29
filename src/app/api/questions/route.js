@@ -55,7 +55,6 @@ export async function POST(request) {
     );
     return NextResponse.json({ id: newId, title });
   } catch (e) {
-    console.error('创建问题失败:', e);
     return NextResponse.json({ error: e.message }, { status: 500 });
   }
 }

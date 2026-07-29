@@ -7,6 +7,6 @@ export async function createNotification(recipient, type, message, relatedId = n
       [recipient, type, message, relatedId, relatedType]
     );
   } catch (e) {
-    console.error('创建通知失败:', e);
+    // 通知发送失败不应阻断主流程
   }
 }

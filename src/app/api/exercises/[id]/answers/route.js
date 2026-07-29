@@ -35,7 +35,6 @@ export async function POST(request, { params }) {
     await pool.query('UPDATE exercises SET answers = $1 WHERE id = $2', [JSON.stringify(answers), exerciseId]);
     return NextResponse.json(newAnswer);
   } catch (e) {
-    console.error('[API] 添加解答失败:', e);
     return NextResponse.json({ error: e.message }, { status: 500 });
   }
 }

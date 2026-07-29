@@ -12,17 +12,14 @@ export async function POST(request) {
     return NextResponse.json({ error: '密码至少8位' }, { status: 400 });
   }
   try {
-    // 检查用户名
     const exists = await pool.query('SELECT 1 FROM users WHERE username = $1', [username]);
     if (exists.rowCount > 0) {
       return NextResponse.json({ error: '用户名已存在' }, { status: 400 });
     }
-    // 检查邮箱
     const emailExists = await pool.query('SELECT 1 FROM users WHERE email = $1', [email]);
     if (emailExists.rowCount > 0) {
       return NextResponse.json({ error: '该邮箱已被注册' }, { status: 400 });
     }
-    // 验证验证码
     const codeResult = await pool.query('SELECT code, expiry FROM verification_codes WHERE email = $1', [email]);
     if (codeResult.rowCount === 0) {
       return NextResponse.json({ error: '请先获取验证码' }, { status: 400 });

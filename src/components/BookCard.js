@@ -1,5 +1,4 @@
 export default function BookCard({ book, onOpen }) {
-  console.log('[BookCard] 渲染:', book.title);
   return (
     <div
       onClick={() => onOpen(book.id)}

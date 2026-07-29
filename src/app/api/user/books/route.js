@@ -8,7 +8,6 @@ export async function GET() {
     return NextResponse.json([]);
   }
   try {
-    // 查询该用户发表过问题或见解的书籍，去重并关联书籍信息，同时统计总讨论数
     const { rows } = await pool.query(
       `SELECT DISTINCT b.id, b.title, b.author,
          (SELECT COUNT(*) FROM questions WHERE book_id = b.id) as discussions
@@ -20,7 +19,6 @@ export async function GET() {
     );
     return NextResponse.json(rows);
   } catch (e) {
-    console.error('获取用户书籍失败:', e);
     return NextResponse.json([]);
   }
 }

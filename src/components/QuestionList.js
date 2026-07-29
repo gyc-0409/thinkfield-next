@@ -3,7 +3,6 @@ import { useRouter } from 'next/navigation';
 
 export default function QuestionList({ questions, bookId }) {
   const router = useRouter();
-  console.log('[QuestionList] 渲染问题列表，数量:', questions.length);
 
   if (!questions.length) {
     return <p className="text-gray-500 mt-4">暂无讨论，快来发起第一个吧！</p>;
@@ -14,10 +13,7 @@ export default function QuestionList({ questions, bookId }) {
       {questions.map(q => (
         <div
           key={q.id}
-          onClick={() => {
-            console.log('[QuestionList] 打开问题:', q.id);
-            router.push(`/question/${q.id}`);
-          }}
+          onClick={() => router.push(`/question/${q.id}`)}
           className="bg-white border p-4 rounded shadow-sm hover:shadow transition cursor-pointer"
         >
           <div className="flex items-start justify-between">

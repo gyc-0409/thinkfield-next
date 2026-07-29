@@ -10,7 +10,6 @@ export async function POST(request) {
   }
 
   try {
-    // 判断输入是否为邮箱
     const isEmail = username.includes('@');
     let result;
     if (isEmail) {
@@ -32,7 +31,6 @@ export async function POST(request) {
     await login(realUsername);
     return NextResponse.json({ success: true, username: realUsername });
   } catch (error) {
-    console.error('登录失败:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

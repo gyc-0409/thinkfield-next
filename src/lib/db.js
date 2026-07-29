@@ -1,30 +1,19 @@
 import { Pool } from 'pg';
 
-console.log('[DB] 正在连接数据库...');
-
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false },
-  // 添加超时和错误处理
   connectionTimeoutMillis: 5000,
   idleTimeoutMillis: 30000,
 });
 
 pool.on('error', (err) => {
-  console.error('[DB] 数据库连接池错误:', err.message);
+  // 保留错误日志（这是运行时错误，不是调试日志）
+  console.error('[DB] 连接池错误:', err.message);
 });
-
-pool.on('connect', () => {
-  console.log('[DB] 数据库连接成功');
-});
-
-// 测试连接
-pool.query('SELECT NOW()')
-  .then(res => console.log('[DB] 数据库时间:', res.rows[0].now))
-  .catch(err => console.error('[DB] 数据库连接失败:', err.message));
 
 export default pool;
-// 确保关键表存在
+
 async function ensureTables() {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS reports (
@@ -52,6 +41,5 @@ async function ensureTables() {
       created_at TIMESTAMPTZ DEFAULT NOW()
     );
   `);
-  console.log('管理相关表已就绪');
 }
-ensureTables().catch(console.error);
+ensureTables().catch(err => console.error('[DB] 建表失败:', err.message));

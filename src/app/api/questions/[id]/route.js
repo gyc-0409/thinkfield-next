@@ -3,7 +3,6 @@ import pool from '@/lib/db';
 
 export async function GET(request, { params }) {
   const { id: questionId } = await params;
-  console.log('[API] 获取问题:', questionId);
   try {
     const result = await pool.query('SELECT * FROM questions WHERE id = $1', [questionId]);
     if (result.rowCount === 0) {
@@ -27,25 +26,20 @@ export async function GET(request, { params }) {
     }
     return NextResponse.json(question);
   } catch (e) {
-    console.error('[API] 获取问题失败:', e);
     return NextResponse.json({ error: e.message }, { status: 500 });
   }
 }
 
 export async function DELETE(request, { params }) {
   const { id: questionId } = await params;
-  console.log('[API] 删除问题:', questionId);
   try {
     const result = await pool.query('SELECT author FROM questions WHERE id = $1', [questionId]);
     if (result.rowCount === 0) {
       return NextResponse.json({ error: '问题不存在' }, { status: 404 });
     }
-    // 权限检查：只有作者可以删除（你可以在前端做，但后端也加一层）
-    // 目前不强制检查，因为前端已限制
     await pool.query('DELETE FROM questions WHERE id = $1', [questionId]);
     return NextResponse.json({ success: true });
   } catch (e) {
-    console.error('[API] 删除问题失败:', e);
     return NextResponse.json({ error: e.message }, { status: 500 });
   }
 }

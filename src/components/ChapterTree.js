@@ -1,5 +1,4 @@
 export default function ChapterTree({ chapters, sections, activeChapter, activeSection, onSelectSection }) {
-  console.log('[ChapterTree] 渲染目录，章节数:', chapters.length);
   return (
     <div>
       <h3 className="font-bold text-lg mb-3">目录</h3>

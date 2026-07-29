@@ -139,6 +139,12 @@ function SectionContent() {
     if (discussionType === 'question' && !title.trim()) return setFormError('请输入你的疑问');
     if (!thought.trim()) return setFormError('请输入你的思考');
 
+    // 新增页码格式验证
+    const page = pageRange.trim();
+    if (page && !/^\d+(-\d+)?$/.test(page)) {
+      return setFormError('请输入正确的页码格式，如 25 或 30-35');
+    }
+
     setSubmitting(true);
     try {
       const res = await fetch('/api/questions', {

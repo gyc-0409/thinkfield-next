@@ -18,7 +18,8 @@ export async function GET(request) {
          COALESCE((string_to_array(page_range, '-'))[1]::int, 0),
          CASE WHEN page_range NOT LIKE '%-%' THEN 0 ELSE 1 END,
          COALESCE((string_to_array(page_range, '-'))[2]::int, 0),
-         created_at ASC`,
+         sort_order ASC,
+         id DESC`,
       [bookId, nodeId]
     );
     return NextResponse.json(rows);

@@ -65,6 +65,16 @@ function SectionContent() {
     return null;
   };
 
+  const fetchQuestions = async (sectionNodeId) => {
+    try {
+      const res = await fetch(`/api/questions?bookId=${bookId}&nodeId=${sectionNodeId}`);
+      const data = await res.json();
+      setQuestions(Array.isArray(data) ? data : []);
+    } catch (e) {
+      // 忽略
+    }
+  };
+
   useEffect(() => {
     if (!bookId || !nodeId) return;
     fetch(`/api/books/${bookId}`)
@@ -84,16 +94,6 @@ function SectionContent() {
       .catch(console.error)
       .finally(() => setLoading(false));
   }, [bookId, nodeId]);
-
-  const fetchQuestions = async (sectionNodeId) => {
-    try {
-      const res = await fetch(`/api/questions?bookId=${bookId}&nodeId=${sectionNodeId}`);
-      const data = await res.json();
-      setQuestions(Array.isArray(data) ? data : []);
-    } catch (e) {
-      console.error(e);
-    }
-  };
 
   const handleDeleteQuestion = async (questionId) => {
     if (!requireLogin()) return;
@@ -139,7 +139,6 @@ function SectionContent() {
     if (discussionType === 'question' && !title.trim()) return setFormError('请输入你的疑问');
     if (!thought.trim()) return setFormError('请输入你的思考');
 
-    // 新增页码格式验证
     const page = pageRange.trim();
     if (page && !/^\d+(-\d+)?$/.test(page)) {
       return setFormError('请输入正确的页码格式，如 25 或 30-35');
@@ -322,7 +321,6 @@ function SectionContent() {
             </div>
             {formError && <p className="text-red-500 text-sm mb-3">{formError}</p>}
 
-            {/* 页码输入 */}
             <input
               value={pageRange}
               onChange={e => setPageRange(e.target.value)}
@@ -330,7 +328,6 @@ function SectionContent() {
               className="w-full border border-gray-200 p-3 rounded-md mb-3 text-sm focus:outline-none focus:border-gray-400 placeholder:text-gray-400"
             />
 
-            {/* 具体位置 */}
             <LatexPreviewGroup
               value={location}
               onChange={e => setLocation(e.target.value)}

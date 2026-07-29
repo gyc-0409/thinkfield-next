@@ -1,5 +1,5 @@
 'use client';
-import { useState, useRef, useEffect } from 'react';
+import { useState } from 'react';
 
 export default function CommentTree({ comments, depth = 0, questionId, thoughtId, onReply, onQuoteClick, onDelete, currentUser, deleteComment }) {
   if (!comments || comments.length === 0) return null;
@@ -30,7 +30,6 @@ function CommentItem({ comment, depth, questionId, thoughtId, onReply, onQuoteCl
   const [liked, setLiked] = useState(isDeleted ? false : (comment.liked_by?.includes(currentUser) || false));
   const [loading, setLoading] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const quoteRef = useRef(null);
 
   const hasChildren = comment.children && comment.children.length > 0;
 
@@ -38,20 +37,13 @@ function CommentItem({ comment, depth, questionId, thoughtId, onReply, onQuoteCl
 
   const isAuthor = currentUser && comment.author === currentUser;
 
-  // 原生点击监听，确保参数完整传递
-  useEffect(() => {
-    const el = quoteRef.current;
-    if (!el || !onQuoteClick || !comment.quote_text) return;
-
-    const handler = (e) => {
-      e.stopPropagation();
-      if (comment.quote_start !== undefined && comment.quote_end !== undefined) {
-        onQuoteClick(comment.quote_start, comment.quote_end, comment.quote_text || '');
-      }
-    };
-    el.addEventListener('click', handler);
-    return () => el.removeEventListener('click', handler);
-  }, [onQuoteClick, comment.quote_start, comment.quote_end, comment.quote_text]);
+  // 引用点击处理（不再需要 useEffect 和 ref）
+  const handleQuoteClick = (e) => {
+    e.stopPropagation();
+    if (onQuoteClick && comment.quote_start !== undefined && comment.quote_end !== undefined) {
+      onQuoteClick(comment.quote_start, comment.quote_end, comment.quote_text || '');
+    }
+  };
 
   const handleLike = async () => {
     if (loading || isDeleted) return;
@@ -118,7 +110,7 @@ function CommentItem({ comment, depth, questionId, thoughtId, onReply, onQuoteCl
             {comment.quote_text && (
               <div className="text-xs text-gray-500 mb-1">
                 <span
-                  ref={quoteRef}
+                  onClick={handleQuoteClick}
                   className="italic cursor-pointer hover:text-gray-700 transition-colors"
                 >
                   引用：{comment.quote_text.substring(0, 80)}

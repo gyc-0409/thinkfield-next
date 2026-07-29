@@ -1,44 +1,16 @@
-'use client';
-import 'core-js/stable';
-import './globals.css';
-import { AuthProvider, useAuth } from '@/context/AuthContext';
-import { useRouter } from 'next/navigation';
-import LoginRequiredModal from '@/components/LoginRequiredModal';
-import { useEffect } from 'react';
+import '@/app/globals.css';
+import ClientProviders from '@/components/ClientProviders';
 
-function AppContent({ children }) {
-  const { loginRequiredVisible, hideLoginRequired } = useAuth();
-  const router = useRouter();
-
-  // 注册 Service Worker
-  useEffect(() => {
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js');
-    }
-  }, []);
-
-  const handleGoLogin = () => {
-    hideLoginRequired();
-    router.push('/?login=1');
-  };
-
-  return (
-    <>
-      {children}
-      {loginRequiredVisible && (
-        <LoginRequiredModal onClose={hideLoginRequired} onGoLogin={handleGoLogin} />
-      )}
-    </>
-  );
-}
+export const metadata = {
+  title: '思辨场',
+  description: '面向本科生的教材讨论平台',
+};
 
 export default function RootLayout({ children }) {
   return (
     <html lang="zh-CN">
       <body>
-        <AuthProvider>
-          <AppContent>{children}</AppContent>
-        </AuthProvider>
+        <ClientProviders>{children}</ClientProviders>
       </body>
     </html>
   );

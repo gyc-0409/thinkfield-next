@@ -208,13 +208,15 @@ function SectionContent() {
     <div className="fixed inset-0 z-10 flex overflow-hidden bg-white">
       {/* 手机端顶部栏 */}
       <div className="md:hidden fixed top-0 left-0 right-0 z-20 flex items-center justify-between px-3 py-2 border-b border-gray-200 bg-white">
-        <button onClick={() => setSidebarOpen(true)} className="text-gray-600 hover:bg-gray-100 px-2 py-1 rounded text-sm border border-gray-200">
-          列表
+        <button onClick={() => setSidebarOpen(true)} className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-gray-300 bg-gray-100 text-gray-700 hover:bg-gray-200" title="打开列表">
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M13 5l7 7-7 7M6 5l7 7-7 7" />
+          </svg>
         </button>
-        <h2 className="text-sm font-medium text-gray-800 truncate flex-1 text-center">{sectionTitle}</h2>
-        <button onClick={handleTocClick} className={`text-gray-400 hover:text-gray-600 p-1 ${tocGlow ? 'btn-glow' : ''}`} title="目录">
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+        <h2 className="text-sm font-medium text-gray-800 truncate flex-1 text-center px-2">{sectionTitle}</h2>
+        <button onClick={handleTocClick} className={`inline-flex h-9 w-9 items-center justify-center rounded-md border border-gray-300 bg-gray-100 text-gray-700 hover:bg-gray-200 ${tocGlow ? 'btn-glow' : ''}`} title="目录">
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </button>
       </div>
@@ -224,16 +226,35 @@ function SectionContent() {
         <div className="md:hidden fixed inset-0 z-30 flex">
           <div className="absolute inset-0" style={{ backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }} onClick={() => setSidebarOpen(false)} />
           <div className="relative w-72 bg-white shadow-2xl h-full overflow-y-auto animate-slide-in">
-            <div className="p-4 border-b border-gray-100 flex items-center justify-between">
-              <h2 className="text-sm font-medium text-gray-800 truncate">{sectionTitle}</h2>
-              <button onClick={() => setSidebarOpen(false)} className="text-gray-400 hover:text-gray-600 text-xl">&times;</button>
-            </div>
-            <div className="px-4 py-2 border-b border-gray-100 space-y-1">
-              <button onClick={() => { handleNewDiscussion(); setSidebarOpen(false); }} className="w-full flex items-center justify-between text-sm text-gray-700 hover:bg-gray-50 px-2 py-1 rounded">
-                <span>发起新讨论</span><span className="text-lg font-light leading-none">+</span>
+            <div className="p-4 border-b border-gray-200 flex items-center gap-2">
+              <h2 className="text-sm font-medium text-gray-800 truncate flex-1">{sectionTitle}</h2>
+              <button onClick={handleTocClick} className={`inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md border border-gray-300 bg-gray-100 text-gray-700 hover:bg-gray-200 ${tocGlow ? 'btn-glow' : ''}`} title="目录">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
               </button>
-              <button onClick={() => { navigate(`/book/${bookId}/exercises?nodeId=${nodeId}`); setSidebarOpen(false); }} className="w-full text-left text-sm text-gray-700 hover:bg-gray-50 px-2 py-1 rounded">
-                习题区
+              <button onClick={() => setSidebarOpen(false)} className="inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md border border-gray-300 bg-gray-100 text-gray-700 hover:bg-gray-200" title="收起边栏">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M11 19l-7-7 7-7M18 19l-7-7 7-7" />
+                </svg>
+              </button>
+            </div>
+            <div className="border-b border-gray-200">
+              <button onClick={() => { handleNewDiscussion(); setSidebarOpen(false); }} className="w-full flex items-center gap-2 px-4 py-3 text-sm text-gray-800 hover:bg-gray-50 border-b border-gray-100">
+                <svg className="w-4 h-4 text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                </svg>
+                <span className="flex-1 text-left">发起新讨论</span>
+                <span className="text-xl font-light text-gray-500 leading-none">+</span>
+              </button>
+              <button onClick={() => { navigate(`/book/${bookId}/exercises?nodeId=${nodeId}`); setSidebarOpen(false); }} className="w-full flex items-center gap-2 px-4 py-3 text-sm text-gray-800 hover:bg-gray-50">
+                <svg className="w-4 h-4 text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                </svg>
+                <span className="flex-1 text-left">习题区</span>
+                <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                </svg>
               </button>
             </div>
             <div className="p-4">
@@ -266,54 +287,86 @@ function SectionContent() {
       )}
 
       {/* 桌面端侧边栏 */}
-      <div className={`hidden md:flex ${sidebarOpen ? 'w-72' : 'w-0'} transition-all duration-200 border-r border-gray-200 flex-col h-full overflow-hidden`}>
-        <div className="p-4 border-b border-gray-100 flex items-center justify-between">
-          <h2 className="text-sm font-medium text-gray-800 truncate">{sectionTitle}</h2>
-          <button onClick={handleTocClick} className={`text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-md p-1 transition-colors ${tocGlow ? 'btn-glow' : ''}`} title="目录">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+      {sidebarOpen ? (
+        <div className="hidden md:flex w-72 border-r border-gray-200 flex-col h-full overflow-hidden bg-white">
+          <div className="p-4 border-b border-gray-200 flex items-center gap-2">
+            <h2 className="text-sm font-medium text-gray-800 truncate flex-1">{sectionTitle}</h2>
+            <button
+              onClick={handleTocClick}
+              className={`inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md border border-gray-300 bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors ${tocGlow ? 'btn-glow' : ''}`}
+              title="目录"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+            <button
+              onClick={() => setSidebarOpen(false)}
+              className="inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md border border-gray-300 bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
+              title="收起边栏"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M11 19l-7-7 7-7M18 19l-7-7 7-7" />
+              </svg>
+            </button>
+          </div>
+          <div className="border-b border-gray-200">
+            <button onClick={handleNewDiscussion} className="w-full flex items-center gap-2 px-4 py-3 text-sm text-gray-800 hover:bg-gray-50 border-b border-gray-100 transition-colors">
+              <svg className="w-4 h-4 text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+              </svg>
+              <span className="flex-1 text-left">发起新讨论</span>
+              <span className="text-xl font-light text-gray-500 leading-none">+</span>
+            </button>
+            <button onClick={() => navigate(`/book/${bookId}/exercises?nodeId=${nodeId}`)} className="w-full flex items-center gap-2 px-4 py-3 text-sm text-gray-800 hover:bg-gray-50 transition-colors">
+              <svg className="w-4 h-4 text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+              </svg>
+              <span className="flex-1 text-left">习题区</span>
+              <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
+          <div className="flex-1 min-h-0 scroll-container p-4 pb-8" style={{ WebkitMaskImage: 'linear-gradient(to bottom, black 92%, transparent 100%)', maskImage: 'linear-gradient(to bottom, black 92%, transparent 100%)' }}>
+            {questions.length === 0 ? (
+              <p className="text-sm text-gray-400">暂无讨论</p>
+            ) : (
+              <div className="space-y-1">
+                {questions.map(q => (
+                  <div key={q.id} className={`group w-full text-left px-3 py-2 rounded text-sm transition-colors ${selectedQuestionId === q.id ? 'bg-gray-100 text-gray-900 font-medium' : 'text-gray-600 hover:bg-gray-50'}`}>
+                    <div className="flex items-center justify-between">
+                      <button onClick={() => handleSelectQuestion(q.id)} className="flex-1 text-left truncate">
+                        <span dangerouslySetInnerHTML={{ __html: renderLatexToHTML(q.title) }} />
+                      </button>
+                      {user && q.author === user && (
+                        <button onClick={(e) => { e.stopPropagation(); handleDeleteQuestion(q.id); }} className="text-gray-300 hover:text-red-500 ml-2 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" title="删除">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      )}
+                    </div>
+                    <div className="text-xs text-gray-400 mt-0.5">{q.author} · {q.replies} 回复{q.page_range ? ` · 页码 ${q.page_range}` : ''}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      ) : (
+        <div className="hidden md:flex w-12 flex-shrink-0 border-r border-gray-200 bg-white pt-3 justify-center">
+          <button
+            onClick={() => setSidebarOpen(true)}
+            className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-gray-300 bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
+            title="打开边栏"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13 5l7 7-7 7M6 5l7 7-7 7" />
             </svg>
           </button>
         </div>
-        <div className="px-4 py-2 border-b border-gray-100 space-y-1">
-          <button onClick={handleNewDiscussion} className="w-full flex items-center justify-between text-sm text-gray-700 hover:bg-gray-50 px-2 py-1 rounded">
-            <span>发起新讨论</span><span className="text-lg font-light leading-none">+</span>
-          </button>
-          <button onClick={() => navigate(`/book/${bookId}/exercises?nodeId=${nodeId}`)} className="w-full text-left text-sm text-gray-700 hover:bg-gray-50 px-2 py-1 rounded">
-            习题区
-          </button>
-        </div>
-        <div className="flex-1 min-h-0 scroll-container p-4 pb-8" style={{ WebkitMaskImage: 'linear-gradient(to bottom, black 92%, transparent 100%)', maskImage: 'linear-gradient(to bottom, black 92%, transparent 100%)' }}>
-          {questions.length === 0 ? (
-            <p className="text-sm text-gray-400">暂无讨论</p>
-          ) : (
-            <div className="space-y-1">
-              {questions.map(q => (
-                <div key={q.id} className={`group w-full text-left px-3 py-2 rounded text-sm transition-colors ${selectedQuestionId === q.id ? 'bg-gray-100 text-gray-900 font-medium' : 'text-gray-600 hover:bg-gray-50'}`}>
-                  <div className="flex items-center justify-between">
-                    <button onClick={() => handleSelectQuestion(q.id)} className="flex-1 text-left truncate">
-                      <span dangerouslySetInnerHTML={{ __html: renderLatexToHTML(q.title) }} />
-                    </button>
-                    {user && q.author === user && (
-                      <button onClick={(e) => { e.stopPropagation(); handleDeleteQuestion(q.id); }} className="text-gray-300 hover:text-red-500 ml-2 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" title="删除">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                      </button>
-                    )}
-                  </div>
-                  <div className="text-xs text-gray-400 mt-0.5">{q.author} · {q.replies} 回复{q.page_range ? ` · 页码 ${q.page_range}` : ''}</div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* 桌面端折叠按钮 */}
-      <button onClick={() => setSidebarOpen(!sidebarOpen)} className="hidden md:flex h-10 w-6 bg-gray-100 hover:bg-gray-200 items-center justify-center text-gray-500 text-xs flex-shrink-0">
-        {sidebarOpen ? '<' : '>'}
-      </button>
+      )}
 
       {/* 右侧内容区 */}
       <div className="flex-1 min-h-0 scroll-container p-4 md:p-8 pb-8 relative pt-14 md:pt-0" style={{ WebkitMaskImage: 'linear-gradient(to bottom, black 92%, transparent 100%)', maskImage: 'linear-gradient(to bottom, black 92%, transparent 100%)' }}>

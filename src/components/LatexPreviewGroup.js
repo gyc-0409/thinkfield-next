@@ -2,6 +2,9 @@
 import { useRef, useEffect, useState } from 'react';
 import { renderLatexToHTML } from '@/lib/renderLatex';
 
+const LATEX_HINT = '支持 LaTeX 公式，例如 $E=mc^2$';
+const LATEX_TITLE = '支持 LaTeX：用 $...$ 包裹行内公式，用 $$...$$ 包裹独立公式';
+
 export default function LatexPreviewGroup({
   value,
   onChange,
@@ -50,6 +53,7 @@ export default function LatexPreviewGroup({
         value={value}
         onChange={onChange}
         placeholder={placeholder}
+        title={LATEX_TITLE}
         rows={rows}
         className={`w-full border border-gray-200 p-3 rounded-md text-sm focus:outline-none focus:border-gray-400 resize-y placeholder:text-gray-400 ${textareaClassName}`}
       />
@@ -63,6 +67,7 @@ export default function LatexPreviewGroup({
         value={value}
         onChange={onChange}
         placeholder={placeholder}
+        title={LATEX_TITLE}
         rows={isMobile ? Math.min(rows, 4) : rows}
         className={`flex-1 border border-gray-200 p-3 rounded-md text-sm focus:outline-none focus:border-gray-400 resize-y placeholder:text-gray-400 ${textareaClassName}`}
         style={{ minHeight: '60px' }}
@@ -71,9 +76,10 @@ export default function LatexPreviewGroup({
         ref={previewRef}
         className="flex-1 border border-gray-200 p-3 rounded-md bg-gray-50 overflow-y-auto text-sm"
         style={{ height: isMobile ? '150px' : (height ? `${height}px` : 'auto'), minHeight: '80px' }}
+        title={LATEX_TITLE}
       >
         {showEmptyHint ? (
-          <span className="text-gray-400 italic">Latex预览</span>
+          <span className="text-gray-400 text-xs sm:text-sm leading-relaxed">{LATEX_HINT}</span>
         ) : (
           <div dangerouslySetInnerHTML={{ __html: previewHtml }} />
         )}

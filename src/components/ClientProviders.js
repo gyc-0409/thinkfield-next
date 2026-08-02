@@ -16,6 +16,17 @@ function AppContent({ children }) {
     }
   }, []);
 
+  // 老浏览器检测：不支持 CSS Grid 则提示升级
+  useEffect(() => {
+    try {
+      if (typeof CSS !== 'undefined' && CSS.supports && !CSS.supports('display', 'grid')) {
+        alert('请使用 Chrome/Firefox 等现代浏览器');
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+
   const handleGoLogin = () => {
     hideLoginRequired();
     router.push('/?login=1');

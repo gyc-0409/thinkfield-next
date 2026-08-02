@@ -263,13 +263,21 @@ function SectionContent() {
               ) : (
                 <div className="space-y-1">
                   {questions.map(q => (
-                    <div key={q.id} className={`group w-full text-left px-3 py-2 rounded text-sm transition-colors ${selectedQuestionId === q.id ? 'bg-gray-100 text-gray-900 font-medium' : 'text-gray-600 hover:bg-gray-50'}`}>
-                      <div className="flex items-center justify-between">
-                        <button onClick={() => { handleSelectQuestion(q.id); setSidebarOpen(false); }} className="flex-1 text-left truncate">
+                    <div
+                      key={q.id}
+                      role="button"
+                      tabIndex={0}
+                      title={q.title}
+                      onClick={() => { handleSelectQuestion(q.id); setSidebarOpen(false); }}
+                      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleSelectQuestion(q.id); setSidebarOpen(false); } }}
+                      className={`group w-full text-left px-3 py-2 rounded text-sm transition-colors cursor-pointer ${selectedQuestionId === q.id ? 'bg-gray-100 text-gray-900 font-medium' : 'text-gray-600 hover:bg-gray-50'}`}
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex-1 min-w-0 truncate">
                           <span dangerouslySetInnerHTML={{ __html: renderLatexToHTML(q.title) }} />
-                        </button>
+                        </div>
                         {user && q.author === user && (
-                          <button onClick={(e) => { e.stopPropagation(); handleDeleteQuestion(q.id); }} className="text-gray-300 hover:text-red-500 ml-2 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" title="删除">
+                          <button onClick={(e) => { e.stopPropagation(); handleDeleteQuestion(q.id); }} className="text-gray-300 hover:text-red-500 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" title="删除">
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                             </svg>
@@ -334,13 +342,21 @@ function SectionContent() {
             ) : (
               <div className="space-y-1">
                 {questions.map(q => (
-                  <div key={q.id} className={`group w-full text-left px-3 py-2 rounded text-sm transition-colors ${selectedQuestionId === q.id ? 'bg-gray-100 text-gray-900 font-medium' : 'text-gray-600 hover:bg-gray-50'}`}>
-                    <div className="flex items-center justify-between">
-                      <button onClick={() => handleSelectQuestion(q.id)} className="flex-1 text-left truncate">
+                  <div
+                    key={q.id}
+                    role="button"
+                    tabIndex={0}
+                    title={q.title}
+                    onClick={() => handleSelectQuestion(q.id)}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleSelectQuestion(q.id); } }}
+                    className={`group w-full text-left px-3 py-2 rounded text-sm transition-colors cursor-pointer ${selectedQuestionId === q.id ? 'bg-gray-100 text-gray-900 font-medium' : 'text-gray-600 hover:bg-gray-50'}`}
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex-1 min-w-0 truncate">
                         <span dangerouslySetInnerHTML={{ __html: renderLatexToHTML(q.title) }} />
-                      </button>
+                      </div>
                       {user && q.author === user && (
-                        <button onClick={(e) => { e.stopPropagation(); handleDeleteQuestion(q.id); }} className="text-gray-300 hover:text-red-500 ml-2 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" title="删除">
+                        <button onClick={(e) => { e.stopPropagation(); handleDeleteQuestion(q.id); }} className="text-gray-300 hover:text-red-500 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" title="删除">
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                           </svg>

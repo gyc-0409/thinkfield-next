@@ -2,13 +2,16 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
+import AddBookModal from '@/components/AddBookModal';
 
 export default function CategoryClient({ type, initialBooks = [], loadError: initialError = null }) {
   const router = useRouter();
-  const { role } = useAuth();
+  const { role, requireLogin } = useAuth();
   const [books, setBooks] = useState(initialBooks);
   const [loading, setLoading] = useState(!initialBooks.length && !initialError);
   const [error, setError] = useState(initialError);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showAddBook, setShowAddBook] = useState(false);
 
   const isAdmin = role === 'admin';
   const typeLabel = type === 'literature' ? '文学' : '理学';
@@ -43,6 +46,17 @@ export default function CategoryClient({ type, initialBooks = [], loadError: ini
     }
   };
 
+  const handleSearch = (e) => {
+    e.preventDefault();
+    if (!searchQuery.trim()) return;
+    router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+  };
+
+  const handleOpenAddBook = () => {
+    if (!requireLogin()) return;
+    setShowAddBook(true);
+  };
+
   if (loading) return <p className="text-sm text-gray-400 p-8">加载中...</p>;
 
   return (
@@ -51,6 +65,20 @@ export default function CategoryClient({ type, initialBooks = [], loadError: ini
         返回首页
       </button>
       <h2 className="text-lg sm:text-xl font-medium text-gray-800 mb-4 sm:mb-6">{typeLabel}书籍</h2>
+
+      <form onSubmit={handleSearch} className="mb-6 flex gap-2">
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="搜索书籍..."
+          className="flex-1 border border-gray-200 rounded-md px-3 py-2 text-sm text-gray-700 focus:outline-none focus:border-gray-400 placeholder:text-gray-400"
+        />
+        <button type="submit" className="bg-gray-800 text-white px-4 py-2 rounded-md text-sm hover:bg-gray-900 transition-colors">
+          搜索
+        </button>
+      </form>
+
       {error ? (
         <p className="text-sm text-red-500">数据加载失败，请稍后重试</p>
       ) : books.length === 0 ? (
@@ -78,6 +106,15 @@ export default function CategoryClient({ type, initialBooks = [], loadError: ini
           ))}
         </div>
       )}
+
+      <p className="mt-8 text-sm text-gray-500 text-center">
+        没有找到想要的书？
+        <button type="button" onClick={handleOpenAddBook} className="text-gray-800 underline underline-offset-2 hover:text-black ml-1">
+          点击此处添加书籍
+        </button>
+      </p>
+
+      {showAddBook && <AddBookModal onClose={() => setShowAddBook(false)} />}
     </div>
   );
 }

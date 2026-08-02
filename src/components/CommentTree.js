@@ -109,12 +109,15 @@ function CommentItem({ comment, depth, questionId, thoughtId, onReply, onQuoteCl
 
             {comment.quote_text && (
               <div className="text-xs text-gray-500 mb-1">
-                <span
+                <button
+                  type="button"
                   onClick={handleQuoteClick}
-                  className="italic cursor-pointer hover:text-gray-700 transition-colors"
+                  title="点击查看原文"
+                  className="italic cursor-pointer underline decoration-gray-300 hover:decoration-gray-500 hover:text-gray-700 transition-colors text-left"
                 >
                   引用：{comment.quote_text.substring(0, 80)}
-                </span>
+                  <span className="not-italic no-underline text-gray-400 ml-1">（点击跳转原文）</span>
+                </button>
               </div>
             )}
 

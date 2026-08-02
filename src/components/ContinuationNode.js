@@ -3,6 +3,7 @@ import { useState, useRef, useEffect, createContext, useContext } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { renderLatexToHTML } from '@/lib/renderLatex';
 import LatexPreviewGroup from '@/components/LatexPreviewGroup';
+import { resolveContextMenuQuote } from '@/lib/quoteSelection';
 
 export const FocusContext = createContext();
 export function useFocus() {
@@ -120,21 +121,11 @@ export default function ContinuationNode({
   const closeTouchMenu = () => setTouchMenu({ visible: false, x: 0, y: 0, startIdx: null, endIdx: null, text: '' });
   const handleContextMenu = (e) => {
     if (isMobile || !requireLogin()) return;
-    const formulaSpan = e.target.closest('.math-formula');
-    if (formulaSpan) {
-      e.preventDefault(); e.stopPropagation();
-      const formulaText = formulaSpan.getAttribute('data-formula');
-      const idx = parseInt(formulaSpan.getAttribute('data-idx'));
-      const len = parseInt(formulaSpan.getAttribute('data-length'));
-      if (!isNaN(idx) && len) { onQuoteText?.(formulaText, idx, idx + len); return; }
-    }
-    const selection = window.getSelection();
-    const selectedText = selection.toString().trim();
-    if (!selectedText) return;
+    const quoted = resolveContextMenuQuote(e, e.currentTarget, cont.content);
+    if (!quoted) return;
     e.preventDefault();
-    const fullText = cont.content;
-    const start = fullText.indexOf(selectedText);
-    if (start !== -1) onQuoteText?.(selectedText, start, start + selectedText.length);
+    e.stopPropagation();
+    onQuoteText?.(quoted.quoteText, quoted.start, quoted.end);
   };
 
   if (!isVisible) return null;

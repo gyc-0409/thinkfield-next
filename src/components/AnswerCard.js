@@ -6,6 +6,7 @@ import CommentTree from '@/components/CommentTree';
 import CommentInput from '@/components/CommentInput';
 import LatexPreviewGroup from '@/components/LatexPreviewGroup';
 import ContinuationNode, { FocusContext } from '@/components/ContinuationNode';
+import { resolveContextMenuQuote } from '@/lib/quoteSelection';
 
 export default function AnswerCard({ answers, currentPage, isLastPage, exerciseId, onAnswerAdded, bookType }) {
   const { user, requireLogin } = useAuth();
@@ -54,23 +55,13 @@ export default function AnswerCard({ answers, currentPage, isLastPage, exerciseI
 
   const handleQuote = (text, start, end) => { setQuoteText(text); setQuoteStart(start); setQuoteEnd(end); setReplyParentId(null); setReplyAuthor(''); setShowCommentInput(true); };
   const handleContextMenu = (e) => {
-    if (isMobile || !requireLogin()) return;
-    const formulaSpan = e.target.closest('.math-formula');
-    if (formulaSpan) {
-      e.preventDefault(); e.stopPropagation();
-      const formulaText = formulaSpan.getAttribute('data-formula');
-      const idx = parseInt(formulaSpan.getAttribute('data-idx'));
-      const len = parseInt(formulaSpan.getAttribute('data-length'));
-      if (!isNaN(idx) && len) { handleQuote(formulaText, idx, idx + len); return; }
-    }
-    const selection = window.getSelection();
-    const selectedText = selection.toString().trim();
-    if (!selectedText) return;
+    if (isMobile || !requireLogin() || !currentAns) return;
+    const contentEl = e.currentTarget.querySelector('.answer-text-container') || e.currentTarget;
+    const quoted = resolveContextMenuQuote(e, contentEl, currentAns.content);
+    if (!quoted) return;
     e.preventDefault();
-    const container = e.currentTarget;
-    const fullText = container.textContent || '';
-    const start = fullText.indexOf(selectedText);
-    if (start !== -1) handleQuote(selectedText, start, start + selectedText.length);
+    e.stopPropagation();
+    handleQuote(quoted.quoteText, quoted.start, quoted.end);
   };
   const getCharAtPosition = (clientX, clientY) => {
     const el = document.elementFromPoint(clientX, clientY);

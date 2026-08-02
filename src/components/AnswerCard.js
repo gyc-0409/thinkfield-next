@@ -113,12 +113,28 @@ export default function AnswerCard({ answers, currentPage, isLastPage, exerciseI
   const handleDeleteExerciseComment = async (commentId) => { if (!currentAns) return; try { const res = await fetch(`/api/exercises/${exerciseId}/answers/${currentAns.id}/comments/${commentId}`, { method: 'DELETE' }); if (!res.ok) throw new Error((await res.json()).error); } catch (e) { throw e; } };
 
   const handleQuoteClick = useCallback((start, end, quoteText) => {
+    // #region agent log
+    const prevFocusLen = focusPath.length;
+    const __dbg = (hypothesisId, location, message, data) => {
+      const payload = { sessionId: '364bc0', runId: 'pre-fix', hypothesisId, location, message, data, timestamp: Date.now() };
+      if (typeof window !== 'undefined') {
+        window.__DBG_QUOTE = window.__DBG_QUOTE || [];
+        window.__DBG_QUOTE.push(payload);
+      }
+      fetch('/api/debug-log', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }).catch(() => {});
+      fetch('http://127.0.0.1:7822/ingest/c132c821-1128-419b-8012-6800aab1345f', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': '364bc0' }, body: JSON.stringify(payload) }).catch(() => {});
+    };
+    __dbg('A', 'AnswerCard.js:handleQuoteClick:entry', 'quote click entry', { start, end, quoteTextLen: (quoteText || '').length, quotePreview: (quoteText || '').slice(0, 40), prevFocusLen, hasContainer: !!answerContainerRef.current });
+    // #endregion
     setFocusPath([]);
     const container = answerContainerRef.current;
     if (!container) return;
 
     const allSpans = container.querySelectorAll('.char-span, .math-formula');
     let firstSpan = null;
+    let formulaHits = 0;
+    let textHits = 0;
+    let textMatchIdx = -2;
 
     // 1. 公式高亮：遍历所有 .math-formula，只要索引区间重叠就高亮
     allSpans.forEach(span => {
@@ -131,6 +147,7 @@ export default function AnswerCard({ answers, currentPage, isLastPage, exerciseI
           span.style.backgroundColor = '#1a1a1a';
           span.style.color = '#fff';
           span.style.transition = 'background-color 0.3s, color 0.3s';
+          formulaHits++;
           if (!firstSpan) firstSpan = span;
         }
       }
@@ -146,6 +163,7 @@ export default function AnswerCard({ answers, currentPage, isLastPage, exerciseI
         spanList.push(span);
       });
       const idx = accumulated.indexOf(quoteText);
+      textMatchIdx = idx;
       if (idx !== -1) {
         let currentPos = 0;
         for (const span of spanList) {
@@ -155,12 +173,31 @@ export default function AnswerCard({ answers, currentPage, isLastPage, exerciseI
             span.style.backgroundColor = '#1a1a1a';
             span.style.color = '#fff';
             span.style.transition = 'background-color 0.3s, color 0.3s';
+            textHits++;
             if (!firstSpan) firstSpan = span;
           }
           currentPos = spanEnd;
         }
       }
     }
+
+    // #region agent log
+    let indexBasedHits = 0;
+    container.querySelectorAll('.char-span').forEach(span => {
+      const i = parseInt(span.getAttribute('data-idx'));
+      if (!isNaN(i) && i >= start && i <= end) indexBasedHits++;
+    });
+    const styledNow = !!firstSpan && (firstSpan.style.backgroundColor === 'rgb(26, 26, 26)' || firstSpan.style.backgroundColor === '#1a1a1a');
+    __dbg('B', 'AnswerCard.js:handleQuoteClick:afterStyle', 'highlight applied sync', { formulaHits, textHits, textMatchIdx, indexBasedHits, charSpanCount: container.querySelectorAll('.char-span').length, hasFirstSpan: !!firstSpan, styledNow, firstBg: firstSpan?.style?.backgroundColor || null });
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const stillInDom = firstSpan && document.contains(firstSpan);
+        const bgAfterRaf = firstSpan?.style?.backgroundColor || null;
+        const highlightedInDom = (answerContainerRef.current || container).querySelectorAll('[style*="rgb(26, 26, 26)"], [style*="#1a1a1a"]').length;
+        __dbg('A', 'AnswerCard.js:handleQuoteClick:afterRaf', 'highlight after rAF (post possible re-render)', { stillInDom, bgAfterRaf, highlightedInDom });
+      });
+    });
+    // #endregion
 
     if (firstSpan) {
       firstSpan.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -171,7 +208,7 @@ export default function AnswerCard({ answers, currentPage, isLastPage, exerciseI
         span.style.color = '';
       });
     }, 3000);
-  }, [setFocusPath]);
+  }, [setFocusPath, focusPath]);
 
   const handleExerciseCommentSubmit = async ({ content, parentId, quoteText, quoteStart, quoteEnd }) => {
     if (!requireLogin()) return;

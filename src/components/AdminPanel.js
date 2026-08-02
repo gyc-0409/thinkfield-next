@@ -27,8 +27,8 @@ export default function AdminPanel({ onClose }) {
       if (!res.ok) throw new Error('加载失败');
       const data = await res.json();
       setReports(data);
-    } catch (e) {
-      console.error(e);
+    } catch {
+      setReports([]);
     }
     setLoadingReports(false);
   };
@@ -40,8 +40,8 @@ export default function AdminPanel({ onClose }) {
       if (!res.ok) throw new Error('加载失败');
       const data = await res.json();
       setBookRequests(data);
-    } catch (e) {
-      console.error(e);
+    } catch {
+      setBookRequests([]);
     }
     setLoadingRequests(false);
   };

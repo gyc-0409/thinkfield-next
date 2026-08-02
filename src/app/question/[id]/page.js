@@ -16,18 +16,25 @@ export default function QuestionDetailPage() {
   const [commentKey, setCommentKey] = useState(0); // 用于刷新 CommentInput
 
   const fetchQuestion = useCallback(async () => {
-    if (!questionId) return;
+    if (!questionId) {
+      setLoading(false);
+      return;
+    }
     try {
       const res = await fetch(`/api/questions/${questionId}`);
       const data = await res.json();
-      if (data.error) return;
+      if (!res.ok || data.error) {
+        setQuestion(null);
+        return;
+      }
       setQuestion(data);
       setThoughts(data.thoughts || []);
       setCurrentThoughtPage(0);
-    } catch (e) {
-      console.error(e);
+    } catch {
+      setQuestion(null);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }, [questionId]);
 
   useEffect(() => {
@@ -39,8 +46,8 @@ export default function QuestionDetailPage() {
       const res = await fetch(`/api/questions/${questionId}/threads?thoughtId=${thoughtId}`);
       const data = await res.json();
       setComments(Array.isArray(data) ? data : []);
-    } catch (e) {
-      console.error(e);
+    } catch {
+      setQuestion(null);
     }
   }, [questionId]);
 

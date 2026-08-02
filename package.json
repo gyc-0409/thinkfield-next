@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@tailwindcss/postcss": "^4",
@@ -23,8 +26,10 @@
     "tailwindcss": "^4"
   },
   "devDependencies": {
+    "@playwright/test": "^1.52.0",
     "eslint": "^9",
-    "eslint-config-next": "16.2.11"
+    "eslint-config-next": "16.2.11",
+    "vitest": "^3.1.2"
   },
   "browserslist": [
     "> 0.5%",

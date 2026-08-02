@@ -12,20 +12,15 @@ export default function ExerciseDetailPage() {
   const [loading, setLoading] = useState(true);
 
   const fetchExercise = async () => {
-    console.log('[ExerciseDetail] 加载习题:', exerciseId);
     try {
       const res = await fetch(`/api/exercises/${exerciseId}`);
       const data = await res.json();
-      if (data.error) {
-        console.error('[ExerciseDetail] 习题加载失败:', data.error);
-        return;
-      }
+      if (!res.ok) throw new Error(data.error || '加载失败');
       setExercise(data);
       setAnswers(data.answers || []);
       setCurrentAnswerPage(0);
-      console.log('[ExerciseDetail] 习题加载成功，解答数:', data.answers?.length || 0);
-    } catch (e) {
-      console.error('[ExerciseDetail] 网络错误:', e);
+    } catch {
+      setExercise(null);
     }
     setLoading(false);
   };

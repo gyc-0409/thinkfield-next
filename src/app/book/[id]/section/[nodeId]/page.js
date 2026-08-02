@@ -30,6 +30,7 @@ function SectionContent() {
   const [formError, setFormError] = useState('');
 
   const [tocGlow, setTocGlow] = useState(false);
+  const [loadError, setLoadError] = useState(null);
 
   useEffect(() => {
     document.documentElement.style.overflow = 'hidden';
@@ -69,17 +70,20 @@ function SectionContent() {
     try {
       const res = await fetch(`/api/questions?bookId=${bookId}&nodeId=${sectionNodeId}`);
       const data = await res.json();
+      if (!res.ok) throw new Error(data.error || `请求失败 (${res.status})`);
       setQuestions(Array.isArray(data) ? data : []);
     } catch (e) {
-      // 忽略
+      setLoadError(e.message);
     }
   };
 
   useEffect(() => {
     if (!bookId || !nodeId) return;
+    setLoadError(null);
     fetch(`/api/books/${bookId}`)
-      .then(r => r.json())
-      .then(data => {
+      .then(async (res) => {
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || `请求失败 (${res.status})`);
         setBook(data);
         const found = findNodeAndPath(data.tree || [], nodeId);
         if (found) {
@@ -91,7 +95,7 @@ function SectionContent() {
           router.push(`/book/${bookId}`);
         }
       })
-      .catch(console.error)
+      .catch((e) => setLoadError(e.message))
       .finally(() => setLoading(false));
   }, [bookId, nodeId]);
 
@@ -112,6 +116,7 @@ function SectionContent() {
   };
 
   if (loading) return <p className="p-8 text-gray-500">加载中...</p>;
+  if (loadError) return <p className="p-8 text-red-500">数据加载失败，请稍后重试</p>;
 
   const handleNewDiscussion = () => {
     setShowNewDiscussion(true);

@@ -13,12 +13,13 @@ export default function BookEntryPage() {
   useEffect(() => {
     if (!bookId) return;
     fetch(`/api/books/${bookId}`)
-      .then(r => r.json())
-      .then(data => {
+      .then(async (res) => {
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || '加载失败');
         setBook(data);
         setShowModal(true);
       })
-      .catch(console.error)
+      .catch(() => setBook(null))
       .finally(() => setLoading(false));
   }, [bookId]);
 

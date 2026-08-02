@@ -22,8 +22,9 @@ export default function AddBookModal({ onClose }) {
   useEffect(() => {
     if (isAdmin) {
       fetch('/api/books/types')
-        .then(r => r.json())
-        .then(types => {
+        .then(async (res) => {
+          const types = await res.json();
+          if (!res.ok) throw new Error(types.error || '加载书籍类型失败');
           if (Array.isArray(types)) setBookTypes(types);
         })
         .catch(() => {});

@@ -1,0 +1,124 @@
+-- 思辨场 PostgreSQL Schema
+-- 由代码推断导出，供新环境初始化参考
+-- reports / notifications 由 db.js 自动创建
+
+CREATE TABLE IF NOT EXISTS users (
+  username TEXT PRIMARY KEY,
+  password_hash TEXT NOT NULL,
+  email TEXT UNIQUE,
+  university TEXT,
+  role TEXT DEFAULT 'user',
+  email_verified BOOLEAN DEFAULT false,
+  banned BOOLEAN DEFAULT false
+);
+
+CREATE TABLE IF NOT EXISTS verification_codes (
+  email TEXT PRIMARY KEY,
+  code TEXT NOT NULL,
+  expiry TIMESTAMPTZ NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS books (
+  id TEXT PRIMARY KEY,
+  title TEXT NOT NULL,
+  author TEXT,
+  hidden BOOLEAN DEFAULT false,
+  type TEXT DEFAULT 'science',
+  tree JSONB DEFAULT '[]',
+  chapters JSONB,
+  sections JSONB
+);
+
+CREATE TABLE IF NOT EXISTS questions (
+  id TEXT PRIMARY KEY,
+  book_id TEXT NOT NULL REFERENCES books(id),
+  node_id TEXT NOT NULL,
+  chapter INTEGER DEFAULT 0,
+  section INTEGER DEFAULT 0,
+  title TEXT NOT NULL,
+  author TEXT NOT NULL,
+  thought TEXT,
+  location TEXT DEFAULT '',
+  type TEXT DEFAULT 'question',
+  unlocked BOOLEAN DEFAULT false,
+  views INTEGER DEFAULT 0,
+  likes INTEGER DEFAULT 0,
+  replies INTEGER DEFAULT 0,
+  viewed_by JSONB DEFAULT '[]',
+  liked_by JSONB DEFAULT '[]',
+  comments JSONB DEFAULT '[]',
+  thoughts JSONB DEFAULT '[]',
+  page_range TEXT,
+  sort_order INTEGER DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS exercises (
+  id TEXT PRIMARY KEY,
+  book_id TEXT NOT NULL REFERENCES books(id),
+  node_id TEXT NOT NULL,
+  chapter INTEGER DEFAULT 0,
+  section INTEGER DEFAULT 0,
+  title TEXT NOT NULL,
+  content TEXT DEFAULT '',
+  author TEXT,
+  answers JSONB DEFAULT '[]'
+);
+
+CREATE TABLE IF NOT EXISTS comment_threads (
+  id TEXT PRIMARY KEY,
+  question_id TEXT NOT NULL REFERENCES questions(id),
+  thought_id TEXT,
+  parent_id TEXT,
+  author TEXT NOT NULL,
+  content TEXT NOT NULL,
+  quote_text TEXT DEFAULT '',
+  quote_start INTEGER DEFAULT 0,
+  quote_end INTEGER DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS exercise_comments (
+  id TEXT PRIMARY KEY,
+  exercise_id TEXT NOT NULL REFERENCES exercises(id),
+  answer_id TEXT NOT NULL,
+  parent_id TEXT,
+  author TEXT NOT NULL,
+  content TEXT NOT NULL,
+  quote_text TEXT DEFAULT '',
+  quote_start INTEGER DEFAULT 0,
+  quote_end INTEGER DEFAULT 0,
+  likes INTEGER DEFAULT 0,
+  liked_by JSONB DEFAULT '[]',
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS reports (
+  id SERIAL PRIMARY KEY,
+  reporter TEXT NOT NULL,
+  reported_user TEXT NOT NULL,
+  content_type TEXT NOT NULL,
+  content_id TEXT NOT NULL,
+  content_preview TEXT DEFAULT '',
+  reason TEXT DEFAULT '',
+  report_count INT DEFAULT 1,
+  status TEXT DEFAULT 'pending',
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  handled_by TEXT DEFAULT NULL,
+  handled_at TIMESTAMPTZ DEFAULT NULL
+);
+
+CREATE TABLE IF NOT EXISTS notifications (
+  id SERIAL PRIMARY KEY,
+  recipient TEXT NOT NULL,
+  type TEXT NOT NULL,
+  message TEXT NOT NULL,
+  related_id TEXT,
+  related_type TEXT,
+  is_read BOOLEAN DEFAULT false,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_questions_book_node ON questions(book_id, node_id);
+CREATE INDEX IF NOT EXISTS idx_exercises_book_node ON exercises(book_id, node_id);
+CREATE INDEX IF NOT EXISTS idx_comment_threads_question ON comment_threads(question_id);
+CREATE INDEX IF NOT EXISTS idx_notifications_recipient ON notifications(recipient);

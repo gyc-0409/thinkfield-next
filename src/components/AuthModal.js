@@ -30,8 +30,9 @@ export default function AuthModal({ onClose }) {
 
   useEffect(() => {
     fetch('/api/universities')
-      .then(r => r.json())
-      .then(data => {
+      .then(async (res) => {
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || '加载大学列表失败');
         if (Array.isArray(data)) setUniversityList(data);
       })
       .catch(() => {});

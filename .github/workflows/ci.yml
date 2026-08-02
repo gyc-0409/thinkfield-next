@@ -24,6 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       SESSION_PASSWORD: ci-build-test-password-32chars
+      DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
       NODE_ENV: production
     steps:
       - uses: actions/checkout@v4

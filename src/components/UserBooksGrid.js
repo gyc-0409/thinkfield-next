@@ -7,6 +7,7 @@ export default function UserBooksGrid({ books: propBooks }) {
   const router = useRouter();
   const [books, setBooks] = useState(propBooks || []);
   const [loading, setLoading] = useState(!propBooks);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     if (propBooks) {
@@ -15,13 +16,17 @@ export default function UserBooksGrid({ books: propBooks }) {
       return;
     }
     fetch('/api/user/books')
-      .then(r => r.json())
-      .then(data => setBooks(Array.isArray(data) ? data : []))
-      .catch(() => {})
+      .then(async (res) => {
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || `请求失败 (${res.status})`);
+        setBooks(Array.isArray(data) ? data : []);
+      })
+      .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
   }, [propBooks]);
 
   if (loading) return <LoadingDots text="加载中" />;
+  if (error) return <p className="text-sm text-red-500">数据加载失败，请稍后重试</p>;
   if (books.length === 0) return null;
 
   return (
@@ -32,7 +37,6 @@ export default function UserBooksGrid({ books: propBooks }) {
           onClick={() => router.push(`/book/${book.id}`)}
           className="group bg-white rounded-md border border-gray-200 shadow-sm hover:shadow-md transition-all cursor-pointer overflow-hidden"
         >
-          {/* 模拟书脊/封面色块 */}
           <div className="h-2 bg-gray-800" />
           <div className="p-4">
             <h3 className="text-sm font-medium text-gray-800 leading-snug line-clamp-2 mb-1">

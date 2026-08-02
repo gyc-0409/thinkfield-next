@@ -3,17 +3,17 @@ import pool from '@/lib/db';
 import { getCurrentUser } from '@/lib/auth';
 
 export async function GET(request) {
-  const { searchParams } = new URL(request.url);
-  const type = searchParams.get('type');
-  const currentUser = await getCurrentUser();
-
-  let isAdmin = false;
-  if (currentUser) {
-    const userRes = await pool.query('SELECT role FROM users WHERE username = $1', [currentUser]);
-    isAdmin = userRes.rows[0]?.role === 'admin';
-  }
-
   try {
+    const { searchParams } = new URL(request.url);
+    const type = searchParams.get('type');
+    const currentUser = await getCurrentUser();
+
+    let isAdmin = false;
+    if (currentUser) {
+      const userRes = await pool.query('SELECT role FROM users WHERE username = $1', [currentUser]);
+      isAdmin = userRes.rows[0]?.role === 'admin';
+    }
+
     let query = 'SELECT id, title, author, hidden, type, tree FROM books';
     const params = [];
     const conditions = [];
@@ -31,7 +31,6 @@ export async function GET(request) {
 
     const { rows: books } = await pool.query(query, params);
 
-    // 统计讨论数
     const counts = await pool.query('SELECT book_id, COUNT(*) as cnt FROM questions GROUP BY book_id');
     const countMap = {};
     counts.rows.forEach(r => { countMap[r.book_id] = parseInt(r.cnt); });

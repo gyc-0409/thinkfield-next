@@ -9,12 +9,22 @@ function SearchContent() {
   const router = useRouter();
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (!query) return;
+    if (!query) {
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    setError(null);
     fetch(`/api/books/search?q=${encodeURIComponent(query)}`)
-      .then(r => r.json())
-      .then(data => setResults(Array.isArray(data) ? data : []))
+      .then(async (res) => {
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || `请求失败 (${res.status})`);
+        setResults(Array.isArray(data) ? data : []);
+      })
+      .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
   }, [query]);
 
@@ -28,6 +38,8 @@ function SearchContent() {
       </h2>
       {loading ? (
         <LoadingDots text="搜索中" />
+      ) : error ? (
+        <p className="text-sm text-red-500">搜索失败，请稍后重试</p>
       ) : results.length === 0 ? (
         <p className="text-sm text-gray-400">未找到相关书籍</p>
       ) : (
@@ -48,7 +60,6 @@ function SearchContent() {
         </div>
       )}
 
-      {/* 始终显示添加书籍提示 */}
       <div className="mt-6 text-sm text-gray-500">
         没有找到想要的书？
         <button

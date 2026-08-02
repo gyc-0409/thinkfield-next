@@ -9,14 +9,14 @@ export async function GET(request) {
     return NextResponse.json([]);
   }
 
-  const currentUser = await getCurrentUser();
-  let isAdmin = false;
-  if (currentUser) {
-    const userRes = await pool.query('SELECT role FROM users WHERE username = $1', [currentUser]);
-    isAdmin = userRes.rows[0]?.role === 'admin';
-  }
-
   try {
+    const currentUser = await getCurrentUser();
+    let isAdmin = false;
+    if (currentUser) {
+      const userRes = await pool.query('SELECT role FROM users WHERE username = $1', [currentUser]);
+      isAdmin = userRes.rows[0]?.role === 'admin';
+    }
+
     let query = `SELECT id, title, author FROM books 
        WHERE (title ILIKE $1 OR author ILIKE $1)`;
     const params = [`%${q}%`];

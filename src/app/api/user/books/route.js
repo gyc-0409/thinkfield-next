@@ -3,11 +3,11 @@ import pool from '@/lib/db';
 import { getCurrentUser } from '@/lib/auth';
 
 export async function GET() {
-  const username = await getCurrentUser();
-  if (!username) {
-    return NextResponse.json([]);
-  }
   try {
+    const username = await getCurrentUser();
+    if (!username) {
+      return NextResponse.json([]);
+    }
     const { rows } = await pool.query(
       `SELECT DISTINCT b.id, b.title, b.author,
          (SELECT COUNT(*) FROM questions WHERE book_id = b.id) as discussions
@@ -19,6 +19,6 @@ export async function GET() {
     );
     return NextResponse.json(rows);
   } catch (e) {
-    return NextResponse.json([]);
+    return NextResponse.json({ error: e.message }, { status: 500 });
   }
 }

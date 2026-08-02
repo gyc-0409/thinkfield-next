@@ -9,18 +9,23 @@ function CategoryContent() {
   const { role } = useAuth();
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const isAdmin = role === 'admin';
   const typeLabel = type === 'literature' ? '文学' : '理学';
 
   const fetchBooks = async () => {
-    if (!type) return;
+    if (!type) {
+      setLoading(false);
+      return;
+    }
     try {
       const res = await fetch(`/api/books?type=${type}`);
       const data = await res.json();
+      if (!res.ok) throw new Error(data.error || `请求失败 (${res.status})`);
       setBooks(Array.isArray(data) ? data : []);
     } catch (e) {
-      console.error(e);
+      setError(e.message);
     }
     setLoading(false);
   };
@@ -48,7 +53,9 @@ function CategoryContent() {
         返回首页
       </button>
       <h2 className="text-lg sm:text-xl font-medium text-gray-800 mb-4 sm:mb-6">{typeLabel}书籍</h2>
-      {books.length === 0 ? (
+      {error ? (
+        <p className="text-sm text-red-500">数据加载失败，请稍后重试</p>
+      ) : books.length === 0 ? (
         <p className="text-sm text-gray-400">暂无书籍</p>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">

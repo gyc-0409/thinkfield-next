@@ -12,6 +12,7 @@ export default function HomePage() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [hotBooks, setHotBooks] = useState([]);
+  const [hotBooksError, setHotBooksError] = useState(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showAdmin, setShowAdmin] = useState(false);
   const [showAddBook, setShowAddBook] = useState(false);
@@ -36,9 +37,12 @@ useEffect(() => {
 
   useEffect(() => {
     fetch('/api/books/hot')
-      .then(r => r.json())
-      .then(data => setHotBooks(Array.isArray(data) ? data : []))
-      .catch(() => {});
+      .then(async (res) => {
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || `请求失败 (${res.status})`);
+        setHotBooks(Array.isArray(data) ? data : []);
+      })
+      .catch((e) => setHotBooksError(e.message));
   }, []);
 
   const handleSearch = (e) => {
@@ -125,9 +129,11 @@ useEffect(() => {
                 {book.title}
               </span>
             ))}
-            {hotBooks.length === 0 && (
+            {hotBooksError ? (
+              <span className="text-sm text-red-500">数据加载失败，请稍后重试</span>
+            ) : hotBooks.length === 0 ? (
               <span className="text-sm text-gray-300">暂无数据</span>
-            )}
+            ) : null}
           </div>
         </div>
 

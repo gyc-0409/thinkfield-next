@@ -18,6 +18,7 @@ function ExercisesContent() {
   const [bookType, setBookType] = useState('science');
   const [sectionTitle, setSectionTitle] = useState('习题');
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false); // 初始值会在 useEffect 中根据屏幕宽度调整
   const [selectedExerciseId, setSelectedExerciseId] = useState(null);
   const [showAddExercise, setShowAddExercise] = useState(true);
@@ -65,26 +66,31 @@ function ExercisesContent() {
   useEffect(() => {
     if (!bookId || !nodeId) return;
     fetch(`/api/books/${bookId}`)
-      .then(r => r.json())
-      .then(data => {
+      .then(async (res) => {
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || `请求失败 (${res.status})`);
         setBookType(data.type || 'science');
         const found = findNodeAndPath(data.tree || [], nodeId);
         if (found) {
           setSectionTitle(found.node.title + ' 习题');
         }
       })
-      .catch(() => {});
+      .catch((e) => setLoadError(e.message));
   }, [bookId, nodeId]);
 
   const fetchExercises = () => {
-    if (!bookId || !nodeId) return;
+    if (!bookId || !nodeId) {
+      setLoadError('缺少章节参数');
+      setLoading(false);
+      return;
+    }
     fetch(`/api/exercises?bookId=${bookId}&nodeId=${nodeId}`)
-      .then(r => r.json())
-      .then(data => {
-        const list = Array.isArray(data) ? data : [];
-        setExercises(list);
+      .then(async (res) => {
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || `请求失败 (${res.status})`);
+        setExercises(Array.isArray(data) ? data : []);
       })
-      .catch(console.error)
+      .catch((e) => setLoadError(e.message))
       .finally(() => setLoading(false));
   };
 
@@ -135,6 +141,7 @@ function ExercisesContent() {
   };
 
   if (loading) return <div className="p-8 flex justify-center"><LoadingDots /></div>;
+  if (loadError) return <div className="p-8 text-sm text-red-500 text-center">数据加载失败，请稍后重试</div>;
 
   const showPreview = bookType !== 'literature';
 

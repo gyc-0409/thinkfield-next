@@ -1,14 +1,22 @@
 import { Pool } from 'pg';
 
+const isProduction = process.env.NODE_ENV === 'production';
+
+if (!process.env.DATABASE_URL) {
+  throw new Error(
+    '缺少环境变量 DATABASE_URL。\n' +
+    '请在项目根目录的 .env.local 文件中添加 DATABASE_URL=postgresql://...\n' +
+    'Railway 部署时请在 Variables 中配置或通过 Link PostgreSQL 自动生成。'
+  );
+}
+
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false },
-  // 连接池设置（针对 Railway 免费数据库限制）
-  max: 3,               // 最多 3 个连接，避免超过 Railway 限制
-  min: 0,               // 空闲时释放所有连接
-  idleTimeoutMillis: 10000,   // 空闲连接 10 秒后释放
+  ssl: isProduction ? { rejectUnauthorized: false } : false,
+  max: 3,
+  min: 0,
+  idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 5000,
-  // 开启 TCP keepalive，防止数据库端关闭空闲连接
   keepAlive: true,
   keepAliveInitialDelayMillis: 10000,
 });
@@ -17,8 +25,13 @@ pool.on('error', (err) => {
   console.error('[DB] 连接池错误:', err.message);
 });
 
+pool.query('SELECT NOW()')
+  .then(res => console.log('[DB] 连接成功，数据库时间:', res.rows[0].now))
+  .catch(err => console.error('[DB] 连接失败:', err.message));
+
 export default pool;
 
+// 仅自动创建管理相关表；books/users/questions 等核心表需手动维护
 async function ensureTables() {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS reports (

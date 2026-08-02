@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
-import { getCurrentUser } from '@/lib/auth';
+import { getCurrentUser, assertNotBanned, serverError } from '@/lib/auth';
 
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
@@ -26,6 +26,8 @@ export async function POST(request) {
   if (!user) {
     return NextResponse.json({ error: '请先登录' }, { status: 401 });
   }
+  const banned = await assertNotBanned(user);
+  if (banned) return banned;
 
   const { bookId, nodeId, title, thought, location, type, page_range } = await request.json();
   if (!bookId || !nodeId || !title || !thought) {
@@ -55,6 +57,6 @@ export async function POST(request) {
     );
     return NextResponse.json({ id: newId, title });
   } catch (e) {
-    return NextResponse.json({ error: e.message }, { status: 500 });
+    return serverError(e, 'questions POST');
   }
 }

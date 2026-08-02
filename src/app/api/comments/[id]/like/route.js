@@ -1,10 +1,12 @@
 import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
-import { getCurrentUser } from '@/lib/auth';
+import { getCurrentUser, assertNotBanned, serverError } from '@/lib/auth';
 
 export async function POST(request, { params }) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: '请先登录' }, { status: 401 });
+  const banned = await assertNotBanned(user);
+  if (banned) return banned;
 
   const { id: commentId } = await params; // 这里必须 await
 
@@ -30,6 +32,6 @@ export async function POST(request, { params }) {
 
     return NextResponse.json({ likes: comment.likes });
   } catch (e) {
-    return NextResponse.json({ error: e.message }, { status: 500 });
+    return serverError(e, 'comment like POST');
   }
 }

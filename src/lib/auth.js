@@ -1,5 +1,6 @@
 import { getIronSession } from 'iron-session';
 import { cookies } from 'next/headers';
+import { NextResponse } from 'next/server';
 
 const SESSION_PASSWORD = process.env.SESSION_PASSWORD;
 if (!SESSION_PASSWORD) {
@@ -40,4 +41,23 @@ export async function logout() {
 export async function getCurrentUser() {
   const session = await getSession();
   return session.username || null;
+}
+
+/** 若用户被禁言则返回 403 Response，否则返回 null */
+export async function assertNotBanned(username) {
+  if (!username) return null;
+  const { default: pool } = await import('@/lib/db');
+  const result = await pool.query(
+    'SELECT banned FROM users WHERE username = $1',
+    [username]
+  );
+  if (result.rowCount > 0 && result.rows[0].banned) {
+    return NextResponse.json({ error: '账号已被禁言' }, { status: 403 });
+  }
+  return null;
+}
+
+export function serverError(error, label = 'API') {
+  console.error(`[${label}]`, error?.message || error);
+  return NextResponse.json({ error: '服务器错误' }, { status: 500 });
 }

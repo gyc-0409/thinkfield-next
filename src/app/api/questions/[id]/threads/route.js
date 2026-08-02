@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
-import { getCurrentUser } from '@/lib/auth';
+import { getCurrentUser, assertNotBanned, serverError } from '@/lib/auth';
 
 // 获取该问题某个思考的追问树
 export async function GET(request, { params }) {
@@ -43,6 +43,8 @@ export async function POST(request, { params }) {
   if (!user) {
     return NextResponse.json({ error: '请先登录' }, { status: 401 });
   }
+  const banned = await assertNotBanned(user);
+  if (banned) return banned;
 
   const { id: questionId } = await params;
   const { content, parentId, quoteText, quoteStart, quoteEnd, thoughtId } = await request.json();
@@ -60,6 +62,6 @@ export async function POST(request, { params }) {
     await pool.query('UPDATE questions SET replies = replies + 1 WHERE id = $1', [questionId]);
     return NextResponse.json({ success: true, id: newId });
   } catch (e) {
-    return NextResponse.json({ error: e.message }, { status: 500 });
+    return serverError(e, 'questions threads POST');
   }
 }

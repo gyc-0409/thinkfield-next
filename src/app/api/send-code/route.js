@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
 import { Resend } from 'resend';
+import { rateLimit, clientIp } from '@/lib/rateLimit';
 
 export async function POST(request) {
   const apiKey = process.env.RESEND_API_KEY;
@@ -8,12 +9,40 @@ export async function POST(request) {
     return NextResponse.json({ error: '邮件服务未配置' }, { status: 500 });
   }
 
-  const { email } = await request.json();
-  if (!email) {
-    return NextResponse.json({ error: '邮箱不能为空' }, { status: 400 });
-  }
-
+  let email;
   try {
+    const body = await request.json();
+    email = body.email;
+    if (!email) {
+      return NextResponse.json({ error: '邮箱不能为空' }, { status: 400 });
+    }
+
+    const ip = clientIp(request);
+    const byIp = rateLimit(`send-code:ip:${ip}`, { windowMs: 60_000, max: 5 });
+    if (!byIp.allowed) {
+      return NextResponse.json(
+        { error: '请求过于频繁' },
+        { status: 429, headers: { 'Retry-After': String(byIp.retryAfterSec) } }
+      );
+    }
+    const byEmail = rateLimit(`send-code:email:${email}`, { windowMs: 60_000, max: 1 });
+    if (!byEmail.allowed) {
+      return NextResponse.json(
+        { error: '请求过于频繁' },
+        { status: 429, headers: { 'Retry-After': String(byEmail.retryAfterSec) } }
+      );
+    }
+    const byEmailHour = rateLimit(`send-code:email-hour:${email}`, {
+      windowMs: 3_600_000,
+      max: 5,
+    });
+    if (!byEmailHour.allowed) {
+      return NextResponse.json(
+        { error: '请求过于频繁' },
+        { status: 429, headers: { 'Retry-After': String(byEmailHour.retryAfterSec) } }
+      );
+    }
+
     const exist = await pool.query('SELECT 1 FROM users WHERE email = $1', [email]);
     if (exist.rowCount > 0) {
       return NextResponse.json({ error: '该邮箱已被注册' }, { status: 400 });
@@ -37,10 +66,11 @@ export async function POST(request) {
           <span style="font-size:32px;font-weight:bold;color:#3498db;letter-spacing:8px;">${code}</span>
         </div>
         <p style="font-size:14px;color:#777;">验证码5分钟内有效，请勿泄露。</p>
-      </div>`
+      </div>`,
     });
     return NextResponse.json({ success: true });
   } catch (e) {
+    console.error('[send-code]', e?.message || e);
     if (email) {
       await pool.query('DELETE FROM verification_codes WHERE email = $1', [email]).catch(() => {});
     }

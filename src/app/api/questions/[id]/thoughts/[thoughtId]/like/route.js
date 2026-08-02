@@ -1,10 +1,12 @@
 import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
-import { getCurrentUser } from '@/lib/auth';
+import { getCurrentUser, assertNotBanned, serverError } from '@/lib/auth';
 
 export async function POST(request, { params }) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: '请先登录' }, { status: 401 });
+  const banned = await assertNotBanned(user);
+  if (banned) return banned;
 
   const { id: questionId, thoughtId } = await params;
   try {
@@ -28,6 +30,6 @@ export async function POST(request, { params }) {
     await pool.query('UPDATE questions SET thoughts = $1 WHERE id = $2', [JSON.stringify(thoughts), questionId]);
     return NextResponse.json({ likes: thought.likes });
   } catch (e) {
-    return NextResponse.json({ error: e.message }, { status: 500 });
+    return serverError(e, 'thought like POST');
   }
 }

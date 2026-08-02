@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
+import { getCurrentUser, assertNotBanned, serverError } from '@/lib/auth';
 
 export async function GET(request, { params }) {
   const { id: questionId } = await params;
@@ -31,6 +32,10 @@ export async function GET(request, { params }) {
 }
 
 export async function DELETE(request, { params }) {
+  const user = await getCurrentUser();
+  const banned = await assertNotBanned(user);
+  if (banned) return banned;
+
   const { id: questionId } = await params;
   try {
     const result = await pool.query('SELECT author FROM questions WHERE id = $1', [questionId]);
@@ -40,6 +45,6 @@ export async function DELETE(request, { params }) {
     await pool.query('DELETE FROM questions WHERE id = $1', [questionId]);
     return NextResponse.json({ success: true });
   } catch (e) {
-    return NextResponse.json({ error: e.message }, { status: 500 });
+    return serverError(e, 'questions DELETE');
   }
 }

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
-import { getCurrentUser } from '@/lib/auth';
+import { getCurrentUser, assertNotBanned, serverError } from '@/lib/auth';
 
 // 递归查找父续写节点并追加
 function findAndAppendContinuation(continuations, parentId, newCont) {
@@ -22,6 +22,8 @@ function findAndAppendContinuation(continuations, parentId, newCont) {
 export async function POST(request, { params }) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: '请先登录' }, { status: 401 });
+  const banned = await assertNotBanned(user);
+  if (banned) return banned;
 
   const { id: exerciseId, answerId } = await params;
   const { start, content, motivation, parentContinuationId } = await request.json();
@@ -61,6 +63,6 @@ export async function POST(request, { params }) {
     await pool.query('UPDATE exercises SET answers = $1 WHERE id = $2', [JSON.stringify(answers), exerciseId]);
     return NextResponse.json(newCont);
   } catch (e) {
-    return NextResponse.json({ error: e.message }, { status: 500 });
+    return serverError(e, 'exercise continuations POST');
   }
 }

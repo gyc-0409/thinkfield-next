@@ -22,10 +22,6 @@ jobs:
   build:
     name: Build (Next.js)
     runs-on: ubuntu-latest
-    env:
-      SESSION_PASSWORD: ci-build-test-password-32chars
-      DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
-      NODE_ENV: production
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -34,3 +30,7 @@ jobs:
           cache: 'npm'
       - run: npm ci
       - run: npm run build
+        env:
+          SESSION_PASSWORD: ci-build-test-password-32chars
+          DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
+          NODE_ENV: production

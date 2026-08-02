@@ -83,7 +83,7 @@ export default function QuestionDetailPage() {
       {/* 位置信息 */}
       {question.location && (
         <div className="border-l-4 border-green-500 bg-green-50 p-4 rounded mb-4">
-          <h3 className="font-bold">📍 位置</h3>
+          <h3 className="font-bold">位置</h3>
           <p>{question.location}</p>
         </div>
       )}
@@ -91,7 +91,7 @@ export default function QuestionDetailPage() {
       {/* 问题框 */}
       {question.type === 'question' && (
         <div className="border-l-4 border-red-500 bg-red-50 p-4 rounded mb-4">
-          <h3 className="font-bold">❓ 问题</h3>
+          <h3 className="font-bold">问题</h3>
           <p className="text-gray-600 text-sm">提问者：{question.author}</p>
           <p className="mt-2">{question.title}</p>
         </div>

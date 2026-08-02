@@ -54,7 +54,7 @@ export default function ExerciseDetailPage() {
       <button onClick={() => router.back()} className="text-blue-500 underline mb-4">
         ← 返回习题列表
       </button>
-      <h2 className="text-xl font-bold mb-2">📝 {exercise.title}</h2>
+      <h2 className="text-xl font-bold mb-2">{exercise.title}</h2>
       <p className="text-gray-600 mb-4">来源：{exercise.content || '未知'}</p>
 
       <div className="bg-gray-50 border p-6 rounded">

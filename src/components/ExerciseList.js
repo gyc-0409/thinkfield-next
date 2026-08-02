@@ -16,7 +16,7 @@ export default function ExerciseList({ exercises, bookId }) {
           onClick={() => router.push(`/exercise/${ex.id}`)}
           className="bg-white border p-4 rounded shadow-sm hover:shadow cursor-pointer"
         >
-          <div className="font-bold">📝 {ex.title}</div>
+          <div className="font-bold">{ex.title}</div>
           <div className="text-sm text-gray-500 mt-1">
             来源：{ex.content || '未知'} · {ex.answers?.length || 0} 个解答
           </div>

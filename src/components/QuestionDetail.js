@@ -72,20 +72,17 @@ export default function QuestionDetail({ questionId, bookType }) {
     <div>
       {question.location && (
         <p className="text-sm text-gray-500 mb-2">
-          📍 <span dangerouslySetInnerHTML={{ __html: renderLatexToHTML(question.location) }} />
+          <span className="text-gray-400">位置：</span>
+          <span dangerouslySetInnerHTML={{ __html: renderLatexToHTML(question.location) }} />
           {question.page_range && <span className="ml-2 text-gray-400">页码 {question.page_range}</span>}
         </p>
       )}
 
-      {question.type === 'question' && (
+      {(question.type === 'question' || question.type === 'insight') && (
         <h2
           className="text-lg font-medium text-gray-800 mb-1"
           dangerouslySetInnerHTML={{ __html: renderLatexToHTML(question.title) }}
         />
-      )}
-
-      {question.type === 'insight' && (
-        <h2 className="text-lg font-medium text-gray-800 mb-1">💡 分享见解</h2>
       )}
 
       <p className="text-sm text-gray-500 mb-4 md:mb-6">{question.author}</p>

@@ -18,10 +18,8 @@ export default function QuestionList({ questions, bookId }) {
         >
           <div className="flex items-start justify-between">
             <div>
-              {q.location && <div className="text-xs text-gray-400 mb-1">📍 {q.location}</div>}
-              <div className="font-bold text-gray-800">
-                {q.type === 'insight' ? '💡 ' : '❓ '}{q.title}
-              </div>
+              {q.location && <div className="text-xs text-gray-400 mb-1">位置：{q.location}</div>}
+              <div className="font-bold text-gray-800">{q.title}</div>
               <div className="text-sm text-gray-500 mt-1">
                 {q.author} · {q.replies} 条回复
               </div>

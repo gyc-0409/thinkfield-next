@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
 import { getCurrentUser, assertNotBanned, serverError } from '@/lib/auth';
 
-const CODE_RE = /^[A-Za-z0-9]{12}$/;
+const CODE_RE = /^[A-Za-z0-9]{1,64}$/;
 
 export async function GET() {
   try {
@@ -51,7 +51,7 @@ export async function POST(request) {
       return NextResponse.json({ error: '请先阅读并同意认证信息告知书' }, { status: 400 });
     }
     if (!CODE_RE.test(code)) {
-      return NextResponse.json({ error: '请输入 12 位在线验证码（字母或数字）' }, { status: 400 });
+      return NextResponse.json({ error: '请输入有效的在线验证码（字母或数字）' }, { status: 400 });
     }
 
     const result = await pool.query(

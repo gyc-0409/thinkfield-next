@@ -55,8 +55,8 @@ export default function CertificationPage() {
       setError('请先阅读并同意认证信息告知书');
       return;
     }
-    if (!/^[A-Za-z0-9]{12}$/.test(code.trim())) {
-      setError('请输入 12 位在线验证码（字母或数字）');
+    if (!/^[A-Za-z0-9]+$/.test(code.trim())) {
+      setError('请输入有效的在线验证码（字母或数字）');
       return;
     }
     setSubmitting(true);
@@ -152,7 +152,7 @@ export default function CertificationPage() {
                   <li>登录成功后，点击「学信档案」</li>
                   <li>进入后点击「登录学信档案」</li>
                   <li>进入后点击「在线验证报告」的「查看」</li>
-                  <li>查看「教育部学籍在线验证报告」，获取 12 位在线验证码</li>
+                  <li>查看「教育部学籍在线验证报告」，获取在线验证码</li>
                 </ol>
               </div>
 
@@ -161,12 +161,12 @@ export default function CertificationPage() {
                 <ol className="list-decimal list-inside space-y-1.5 text-gray-600">
                   <li>打开学信网 APP 并登录</li>
                   <li>登录成功后，点击「在线验证报告」</li>
-                  <li>进入后查看「教育部学籍在线验证报告」，获取 12 位在线验证码</li>
+                  <li>进入后查看「教育部学籍在线验证报告」，获取在线验证码</li>
                 </ol>
               </div>
 
               <p className="text-gray-500 text-xs">
-                验证码一般为 12 位，可包含字母和数字。将验证码填入下方输入框即可提交。
+                验证码可包含字母和数字。将学信网上显示的在线验证码完整填入下方即可提交。
               </p>
             </div>
 
@@ -192,8 +192,8 @@ export default function CertificationPage() {
               <label className="block text-sm font-medium text-gray-800 mb-2">在线验证码</label>
               <input
                 value={code}
-                onChange={(e) => setCode(e.target.value.replace(/[^A-Za-z0-9]/g, '').slice(0, 12).toUpperCase())}
-                placeholder="请输入 12 位在线验证码（字母或数字）"
+                onChange={(e) => setCode(e.target.value.replace(/[^A-Za-z0-9]/g, '').slice(0, 64).toUpperCase())}
+                placeholder="请输入在线验证码（字母或数字）"
                 autoComplete="off"
                 spellCheck={false}
                 className="w-full border border-gray-200 rounded-md px-3 py-2.5 text-sm tracking-wider font-mono focus:outline-none focus:border-gray-400 placeholder:text-gray-400 placeholder:tracking-normal placeholder:font-sans"

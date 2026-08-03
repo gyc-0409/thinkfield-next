@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
 import { getCurrentUser, serverError } from '@/lib/auth';
-import { findNodeTitle } from '@/lib/bookTree';
+import { buildPrunedBookTree, groupContributionsByBook } from '@/lib/userProfileTree';
 
 export async function GET(_request, { params }) {
   try {
@@ -32,13 +32,11 @@ export async function GET(_request, { params }) {
     } = userResult.rows[0];
 
     const discussionRows = await pool.query(
-      `SELECT q.id, q.title, q.type, q.replies, q.page_range, q.book_id, q.node_id,
-              b.title AS book_title, b.tree
+      `SELECT q.id, q.title, q.type, q.replies, q.page_range, q.book_id, q.node_id
        FROM questions q
        JOIN books b ON b.id = q.book_id
        WHERE q.author = $1 AND (b.hidden = false OR $2)
-       ORDER BY q.sort_order DESC NULLS LAST, q.id DESC
-       LIMIT 100`,
+       ORDER BY q.sort_order DESC NULLS LAST, q.id DESC`,
       [username, isSelf]
     );
 
@@ -50,49 +48,16 @@ export async function GET(_request, { params }) {
       pageRange: row.page_range || '',
       bookId: row.book_id,
       nodeId: row.node_id,
-      bookTitle: row.book_title,
-      sectionTitle: findNodeTitle(row.tree, row.node_id),
     }));
-
-    const thoughtRows = await pool.query(
-      `SELECT q.id AS question_id, q.title AS question_title, q.book_id, q.node_id,
-              b.title AS book_title, b.tree,
-              t.elem AS thought
-       FROM questions q
-       JOIN books b ON b.id = q.book_id
-       CROSS JOIN LATERAL jsonb_array_elements(COALESCE(q.thoughts, '[]'::jsonb)) AS t(elem)
-       WHERE t.elem->>'author' = $1 AND (b.hidden = false OR $2)
-       ORDER BY COALESCE(t.elem->>'created_at', '') DESC, q.id DESC
-       LIMIT 100`,
-      [username, isSelf]
-    );
-
-    const thoughts = thoughtRows.rows.map((row) => {
-      const thought = row.thought || {};
-      const content = typeof thought.content === 'string' ? thought.content : '';
-      return {
-        id: thought.id || null,
-        questionId: row.question_id,
-        questionTitle: row.question_title,
-        contentPreview: content.length > 80 ? `${content.slice(0, 80)}…` : content,
-        likes: Number(thought.likes) || 0,
-        bookId: row.book_id,
-        nodeId: row.node_id,
-        bookTitle: row.book_title,
-        sectionTitle: findNodeTitle(row.tree, row.node_id),
-      };
-    });
 
     const answerRows = await pool.query(
       `SELECT e.id AS exercise_id, e.title AS exercise_title, e.book_id, e.node_id,
-              b.title AS book_title, b.tree,
               ans.elem AS answer
        FROM exercises e
        JOIN books b ON b.id = e.book_id
        CROSS JOIN LATERAL jsonb_array_elements(COALESCE(e.answers, '[]'::jsonb)) AS ans(elem)
        WHERE ans.elem->>'author' = $1 AND (b.hidden = false OR $2)
-       ORDER BY e.id DESC
-       LIMIT 100`,
+       ORDER BY e.id DESC`,
       [username, isSelf]
     );
 
@@ -105,10 +70,32 @@ export async function GET(_request, { params }) {
         likes: Number(answer.likes) || 0,
         bookId: row.book_id,
         nodeId: row.node_id,
-        bookTitle: row.book_title,
-        sectionTitle: findNodeTitle(row.tree, row.node_id),
       };
     });
+
+    const contributionsByBook = groupContributionsByBook(discussions, answers);
+    const bookIds = [...contributionsByBook.keys()];
+
+    let books = [];
+    if (bookIds.length > 0) {
+      const booksResult = await pool.query(
+        `SELECT id, title, tree FROM books WHERE id = ANY($1::text[])`,
+        [bookIds]
+      );
+      books = booksResult.rows
+        .map((row) => {
+          const nodeMap = contributionsByBook.get(row.id);
+          const tree = buildPrunedBookTree(row.tree || [], nodeMap || new Map());
+          if (tree.length === 0) return null;
+          return {
+            id: row.id,
+            title: row.title,
+            tree,
+          };
+        })
+        .filter(Boolean)
+        .sort((a, b) => a.title.localeCompare(b.title, 'zh-CN'));
+    }
 
     const discussionCountResult = await pool.query(
       `SELECT COUNT(*)::int AS count
@@ -158,7 +145,6 @@ export async function GET(_request, { params }) {
       [username, isSelf]
     );
 
-    // 获赞总数：思考 + 解答 + 续写 + 评论
     const thoughtLikesResult = await pool.query(
       `SELECT COALESCE(SUM(COALESCE((t.elem->>'likes')::int, 0)), 0)::int AS total
        FROM questions q
@@ -205,7 +191,7 @@ export async function GET(_request, { params }) {
       );
       commentLikes += threadLikes.rows[0]?.total || 0;
     } catch {
-      /* likes 列可能不存在，忽略 */
+      /* ignore */
     }
     try {
       const exCommentLikes = await pool.query(
@@ -236,9 +222,7 @@ export async function GET(_request, { params }) {
         answers: answerCountResult.rows[0]?.count || 0,
         likes: likesTotal,
       },
-      discussions,
-      thoughts,
-      answers,
+      books,
     };
 
     if (isSelf) {

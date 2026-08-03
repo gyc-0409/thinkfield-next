@@ -20,12 +20,12 @@ export default function ExerciseDetail({ exerciseId, bookType }) {
 
   const answers = exercise?.answers || [];
 
-  // 处理页面跳转（添加解答后自动跳转到新解答）
+  // 在撰写页发布解答后，跳转到新解答页
   useEffect(() => {
     const prevLen = prevAnswersLengthRef.current;
     const newLen = answers.length;
-    if (newLen > prevLen && currentPage === prevLen) {
-      setCurrentPage(newLen - 1);
+    if (newLen > prevLen && currentPage === 0) {
+      setCurrentPage(newLen);
     }
     prevAnswersLengthRef.current = newLen;
   }, [answers, currentPage]);
@@ -74,7 +74,7 @@ export default function ExerciseDetail({ exerciseId, bookType }) {
   if (!exercise) return <div className="p-4 flex justify-center"><LoadingDots /></div>;
 
   const totalPages = answers.length + 1;
-  const isLastPage = currentPage === answers.length;
+  const isComposePage = currentPage === 0;
 
   return (
     <div>
@@ -86,7 +86,7 @@ export default function ExerciseDetail({ exerciseId, bookType }) {
         <AnswerCard
           answers={answers}
           currentPage={currentPage}
-          isLastPage={isLastPage}
+          isComposePage={isComposePage}
           exerciseId={exerciseId}
           onAnswerAdded={handleAnswerAdded}
           onAnswerLike={handleAnswerLike}
@@ -106,7 +106,7 @@ export default function ExerciseDetail({ exerciseId, bookType }) {
           </span>
           <button
             onClick={() => setCurrentPage(p => Math.min(totalPages - 1, p + 1))}
-            disabled={isLastPage}
+            disabled={currentPage === totalPages - 1}
             className="bg-gray-200 text-gray-600 px-3 py-1 rounded text-sm disabled:opacity-40"
           >
             下一页 &rarr;

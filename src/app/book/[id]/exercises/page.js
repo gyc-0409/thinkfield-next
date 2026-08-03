@@ -3,8 +3,8 @@ import { useState, useEffect, useCallback, useRef, Suspense } from 'react';
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import ExerciseDetail from '@/components/ExerciseDetail';
+import ExerciseSidebarItem from '@/components/ExerciseSidebarItem';
 import LatexPreviewGroup from '@/components/LatexPreviewGroup';
-import { renderLatexToHTML } from '@/lib/renderLatex';
 import LoadingDots from '@/components/LoadingDots';
 
 function ExercisesContent() {
@@ -251,14 +251,12 @@ function ExercisesContent() {
               ) : (
                 <div className="space-y-1">
                   {exercises.map(ex => (
-                    <button
+                    <ExerciseSidebarItem
                       key={ex.id}
+                      exercise={ex}
+                      selected={selectedExerciseId === ex.id}
                       onClick={() => { setShowAddExercise(false); setSelectedExerciseId(ex.id); setSidebarOpen(false); }}
-                      className={`w-full text-left px-3 py-2 rounded text-sm transition-colors ${selectedExerciseId === ex.id ? 'bg-gray-100 text-gray-900 font-medium' : 'text-gray-600 hover:bg-gray-50'}`}
-                    >
-                      <div className="truncate" dangerouslySetInnerHTML={{ __html: renderLatexToHTML(ex.title) }} />
-                      <div className="text-xs text-gray-400 mt-0.5">{ex.answers?.length || 0} 个解答</div>
-                    </button>
+                    />
                   ))}
                 </div>
               )}
@@ -305,14 +303,12 @@ function ExercisesContent() {
             ) : (
               <div className="space-y-1">
                 {exercises.map(ex => (
-                  <button
+                  <ExerciseSidebarItem
                     key={ex.id}
+                    exercise={ex}
+                    selected={selectedExerciseId === ex.id}
                     onClick={() => { setShowAddExercise(false); setSelectedExerciseId(ex.id); }}
-                    className={`w-full text-left px-3 py-2 rounded text-sm transition-colors ${selectedExerciseId === ex.id ? 'bg-gray-100 text-gray-900 font-medium' : 'text-gray-600 hover:bg-gray-50'}`}
-                  >
-                    <div className="truncate" dangerouslySetInnerHTML={{ __html: renderLatexToHTML(ex.title) }} />
-                    <div className="text-xs text-gray-400 mt-0.5">{ex.answers?.length || 0} 个解答</div>
-                  </button>
+                  />
                 ))}
               </div>
             )}

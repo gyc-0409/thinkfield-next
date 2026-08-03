@@ -1,7 +1,9 @@
 'use client';
-import { useRouter } from 'next/navigation';
 
-export default function ExerciseList({ exercises, bookId }) {
+import { useRouter } from 'next/navigation';
+import ExerciseSidebarItem from '@/components/ExerciseSidebarItem';
+
+export default function ExerciseList({ exercises }) {
   const router = useRouter();
 
   if (!exercises.length) {
@@ -11,16 +13,14 @@ export default function ExerciseList({ exercises, bookId }) {
   return (
     <div className="space-y-3 mt-4">
       {exercises.map(ex => (
-        <div
+        <ExerciseSidebarItem
           key={ex.id}
+          exercise={ex}
+          selected={false}
+          className="bg-white border p-4 rounded shadow-sm hover:shadow transition-shadow overflow-visible"
+          previewPlacement="below"
           onClick={() => router.push(`/exercise/${ex.id}`)}
-          className="bg-white border p-4 rounded shadow-sm hover:shadow cursor-pointer"
-        >
-          <div className="font-bold">{ex.title}</div>
-          <div className="text-sm text-gray-500 mt-1">
-            来源：{ex.content || '未知'} · {ex.answers?.length || 0} 个解答
-          </div>
-        </div>
+        />
       ))}
     </div>
   );

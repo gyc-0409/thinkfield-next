@@ -16,7 +16,7 @@ import AuthorLink from '@/components/AuthorLink';
 export default function AnswerCard({
   answers,
   currentPage,
-  isLastPage,
+  isComposePage,
   exerciseId,
   onAnswerAdded,
   onAnswerLike,
@@ -44,7 +44,8 @@ export default function AnswerCard({
   const [touchMenu, setTouchMenu] = useState({ visible: false, x: 0, y: 0, startIdx: null, endIdx: null, text: '' });
   const longPressTimer = useRef(null);
   const touchStartPos = useRef({ x: 0, y: 0 });
-  const currentAns = !isLastPage ? answers[currentPage] : null;
+  const answerIndex = isComposePage ? -1 : currentPage - 1;
+  const currentAns = answerIndex >= 0 ? answers[answerIndex] : null;
   const [answerLiked, setAnswerLiked] = useState(() => normalizeLikedBy(currentAns?.liked_by).includes(user));
   const [answerLikes, setAnswerLikes] = useState(currentAns?.likes || 0);
   const [exerciseComments, setExerciseComments] = useState([]);
@@ -196,10 +197,10 @@ export default function AnswerCard({
     let sourceContent = '';
     if (nodeId.startsWith('cont-')) {
       parentContinuationId = nodeId.replace('cont-', '');
-      const cont = findContinuationById(answers[currentPage]?.continuations, parentContinuationId);
+      const cont = findContinuationById(answers[answerIndex]?.continuations, parentContinuationId);
       sourceContent = cont?.content || '';
     } else if (nodeId.startsWith('answer-')) {
-      sourceContent = answers[currentPage]?.content || '';
+      sourceContent = answers[answerIndex]?.content || '';
     }
     setCutTarget({ nodeId, start: idx, parentContinuationId: parentContinuationId || null, sourceContent });
     setCutMode(false); setShowForm(true); setFormMotivation(''); setFormContent('');
@@ -208,7 +209,7 @@ export default function AnswerCard({
     if (!requireLogin()) return;
     if (!formMotivation.trim() || !formContent.trim()) { alert('请填写完整'); return; }
     if (!cutTarget) return;
-    const ansId = answers[currentPage]?.id;
+    const ansId = answerIndex >= 0 ? answers[answerIndex]?.id : null;
     if (!ansId) return;
     try {
       const res = await fetch(`/api/exercises/${exerciseId}/answers/${ansId}/continuations`, {
@@ -274,7 +275,7 @@ export default function AnswerCard({
 
   const showPreview = bookType !== 'literature';
 
-  if (isLastPage) {
+  if (isComposePage) {
     return (
       <div>
         <h3 className="font-bold text-lg mb-3">添加你的解答</h3>

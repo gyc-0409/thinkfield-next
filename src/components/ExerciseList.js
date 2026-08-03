@@ -17,8 +17,7 @@ export default function ExerciseList({ exercises }) {
           key={ex.id}
           exercise={ex}
           selected={false}
-          className="bg-white border p-4 rounded shadow-sm hover:shadow transition-shadow overflow-visible"
-          previewPlacement="below"
+          className="bg-white border p-4 rounded shadow-sm hover:shadow transition-shadow"
           onClick={() => router.push(`/exercise/${ex.id}`)}
         />
       ))}

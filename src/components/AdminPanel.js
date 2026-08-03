@@ -4,18 +4,19 @@ import { useAuth } from '@/context/AuthContext';
 import LoadingDots from '@/components/LoadingDots';
 
 export default function AdminPanel({ onClose }) {
-  const { user, role } = useAuth();
+  const { role } = useAuth();
   const [tab, setTab] = useState('reports');
 
-  // 举报相关
   const [reports, setReports] = useState([]);
   const [loadingReports, setLoadingReports] = useState(false);
 
-  // 书籍申请相关
   const [bookRequests, setBookRequests] = useState([]);
   const [loadingRequests, setLoadingRequests] = useState(false);
 
-  // 角色设置（仅超管在举报页显示）
+  const [certifications, setCertifications] = useState([]);
+  const [loadingCerts, setLoadingCerts] = useState(false);
+  const [schoolInputs, setSchoolInputs] = useState({});
+
   const [roleUsername, setRoleUsername] = useState('');
   const [newRole, setNewRole] = useState('user');
   const [roleMsg, setRoleMsg] = useState('');
@@ -46,11 +47,26 @@ export default function AdminPanel({ onClose }) {
     setLoadingRequests(false);
   };
 
+  const loadCertifications = async () => {
+    setLoadingCerts(true);
+    try {
+      const res = await fetch('/api/admin/certifications');
+      if (!res.ok) throw new Error((await res.json()).error || '加载失败');
+      const data = await res.json();
+      setCertifications(Array.isArray(data) ? data : []);
+    } catch {
+      setCertifications([]);
+    }
+    setLoadingCerts(false);
+  };
+
   useEffect(() => {
     if (tab === 'reports') {
       if (reports.length === 0) loadReports();
     } else if (tab === 'book-requests') {
       loadBookRequests();
+    } else if (tab === 'certifications') {
+      loadCertifications();
     }
   }, [tab]);
 
@@ -124,14 +140,46 @@ export default function AdminPanel({ onClose }) {
     } catch (e) { alert(e.message); }
   };
 
+  const handleCertAction = async (username, action) => {
+    const school = (schoolInputs[username] || '').trim();
+    if (action === 'approve' && !school) {
+      alert('请填写学校名称');
+      return;
+    }
+    let reason = '';
+    if (action === 'reject') {
+      reason = window.prompt('拒绝原因（可选）', '') || '';
+    }
+    const labels = { approve: '通过', reject: '拒绝', revoke: '撤销' };
+    if (!confirm(`确认${labels[action]}用户 ${username} 的学生认证？`)) return;
+    try {
+      const res = await fetch('/api/admin/certifications', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, action, school, reason }),
+      });
+      if (!res.ok) throw new Error((await res.json()).error);
+      alert('已处理');
+      loadCertifications();
+    } catch (e) {
+      alert(e.message);
+    }
+  };
+
+  const statusLabel = (s) => {
+    if (s === 'pending') return '待审核';
+    if (s === 'approved') return '已通过';
+    if (s === 'rejected') return '已拒绝';
+    return s;
+  };
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-0 md:p-4">
       <div className="bg-white rounded-none md:rounded-lg p-4 md:p-6 w-full h-full md:h-auto md:max-w-2xl md:max-h-[80vh] overflow-y-auto relative">
         <button onClick={onClose} className="absolute top-3 right-4 text-gray-400 text-2xl hover:text-gray-600">&times;</button>
         <h2 className="text-xl font-medium text-gray-800 mb-6">管理后台</h2>
 
-        {/* 标签页 */}
-        <div className="flex gap-4 mb-6 border-b border-gray-200">
+        <div className="flex flex-wrap gap-4 mb-6 border-b border-gray-200">
           <button
             onClick={() => setTab('reports')}
             className={`pb-2 text-sm font-medium ${tab === 'reports' ? 'text-gray-800 border-b-2 border-gray-800' : 'text-gray-500'}`}
@@ -144,9 +192,16 @@ export default function AdminPanel({ onClose }) {
           >
             书籍申请
           </button>
+          {role === 'admin' && (
+            <button
+              onClick={() => setTab('certifications')}
+              className={`pb-2 text-sm font-medium ${tab === 'certifications' ? 'text-gray-800 border-b-2 border-gray-800' : 'text-gray-500'}`}
+            >
+              学生认证
+            </button>
+          )}
         </div>
 
-        {/* 仅举报页显示角色设置 */}
         {tab === 'reports' && role === 'admin' && (
           <div className="mb-6 p-4 border border-gray-200 rounded-lg bg-gray-50">
             <h3 className="font-medium mb-3">角色设置</h3>
@@ -222,6 +277,85 @@ export default function AdminPanel({ onClose }) {
                     >
                       同意创建
                     </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {tab === 'certifications' && role === 'admin' && (
+          <div>
+            <h3 className="font-medium mb-2">学生认证</h3>
+            <p className="text-xs text-gray-500 mb-4">
+              请用待审验证码到学信网核验「教育部学籍在线验证报告」，通过后填写学校名称。审核完成后验证码将清空。
+            </p>
+            {loadingCerts ? (
+              <LoadingDots />
+            ) : certifications.length === 0 ? (
+              <p className="text-gray-500 text-sm">暂无认证记录</p>
+            ) : (
+              <div className="space-y-4">
+                {certifications.map((c) => (
+                  <div key={c.username} className="border border-gray-200 rounded-lg p-4">
+                    <div className="flex justify-between items-start mb-2 gap-2">
+                      <div>
+                        <span className="font-medium text-gray-800">{c.username}</span>
+                        {c.school && <span className="text-sm text-gray-500 ml-2">{c.school}</span>}
+                      </div>
+                      <span className={`text-xs px-2 py-0.5 rounded flex-shrink-0 ${
+                        c.status === 'pending' ? 'bg-yellow-100 text-yellow-700'
+                          : c.status === 'approved' ? 'bg-emerald-50 text-emerald-700'
+                            : 'bg-gray-100 text-gray-500'
+                      }`}>
+                        {statusLabel(c.status)}
+                      </span>
+                    </div>
+                    {c.status === 'pending' && (
+                      <>
+                        <p className="text-sm text-gray-700 mb-2 font-mono tracking-wider">
+                          验证码：{c.code || '（无）'}
+                        </p>
+                        {c.submittedAt && (
+                          <p className="text-xs text-gray-400 mb-3">
+                            提交于 {new Date(c.submittedAt).toLocaleString('zh-CN')}
+                          </p>
+                        )}
+                        <input
+                          value={schoolInputs[c.username] || ''}
+                          onChange={(e) => setSchoolInputs((prev) => ({ ...prev, [c.username]: e.target.value }))}
+                          placeholder="学校名称（通过时必填）"
+                          className="w-full border border-gray-200 p-2 rounded text-sm mb-3 placeholder:text-gray-400"
+                        />
+                        <div className="flex flex-wrap gap-2">
+                          <button
+                            onClick={() => handleCertAction(c.username, 'approve')}
+                            className="bg-gray-800 text-white px-3 py-1 rounded text-sm hover:bg-gray-900"
+                          >
+                            通过
+                          </button>
+                          <button
+                            onClick={() => handleCertAction(c.username, 'reject')}
+                            className="bg-gray-100 text-gray-700 px-3 py-1 rounded text-sm border border-gray-200 hover:bg-gray-200"
+                          >
+                            拒绝
+                          </button>
+                        </div>
+                      </>
+                    )}
+                    {c.status === 'approved' && (
+                      <div className="mt-2">
+                        <button
+                          onClick={() => handleCertAction(c.username, 'revoke')}
+                          className="text-sm text-red-600 hover:text-red-700"
+                        >
+                          撤销认证
+                        </button>
+                      </div>
+                    )}
+                    {c.status === 'rejected' && c.rejectReason && (
+                      <p className="text-sm text-gray-500">原因：{c.rejectReason}</p>
+                    )}
                   </div>
                 ))}
               </div>

@@ -14,6 +14,13 @@ function roleLabel(role) {
   return null;
 }
 
+function certEntryLabel(status) {
+  if (status === 'pending') return '学生认证审核中';
+  if (status === 'approved') return '学生认证已通过';
+  if (status === 'rejected') return '学生认证未通过，可重新提交';
+  return '去学生认证';
+}
+
 export default function ProfileClient({ username }) {
   const router = useRouter();
   const { user } = useAuth();
@@ -80,6 +87,11 @@ export default function ProfileClient({ username }) {
         <header className="mb-8">
           <div className="flex flex-wrap items-baseline gap-2 mb-1">
             <h1 className="text-2xl font-medium text-gray-900 tracking-tight">{data.username}</h1>
+            {data.certified && (
+              <span className="text-xs text-emerald-700 border border-emerald-200 bg-emerald-50 rounded px-1.5 py-0.5">
+                已认证学生
+              </span>
+            )}
             {badge && (
               <span className="text-xs text-gray-500 border border-gray-300 rounded px-1.5 py-0.5">
                 {badge}
@@ -88,6 +100,17 @@ export default function ProfileClient({ username }) {
           </div>
           {isSelf && data.university && (
             <p className="text-sm text-gray-500">{data.university}</p>
+          )}
+          {isSelf && data.certified && data.certificationSchool && (
+            <p className="text-sm text-gray-500 mt-0.5">认证学校：{data.certificationSchool}</p>
+          )}
+          {isSelf && (
+            <Link
+              href="/certification"
+              className="inline-block mt-3 text-sm text-gray-700 border border-gray-300 rounded-md px-3 py-1.5 hover:bg-gray-50 transition-colors"
+            >
+              {certEntryLabel(data.certificationStatus)}
+            </Link>
           )}
         </header>
 

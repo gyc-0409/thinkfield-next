@@ -59,5 +59,17 @@ async function ensureTables() {
       created_at TIMESTAMPTZ DEFAULT NOW()
     );
   `);
+
+  // 学生认证字段（幂等迁移）
+  await pool.query(`
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS certification_status TEXT DEFAULT 'none';
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS certification_school TEXT;
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS certification_code TEXT;
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS certification_agreed_at TIMESTAMPTZ;
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS certification_submitted_at TIMESTAMPTZ;
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS certification_reviewed_at TIMESTAMPTZ;
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS certification_reviewed_by TEXT;
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS certification_reject_reason TEXT;
+  `);
 }
 ensureTables().catch(err => console.error('[DB] 建表失败:', err.message));

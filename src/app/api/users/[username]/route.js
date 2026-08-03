@@ -12,7 +12,9 @@ export async function GET(_request, { params }) {
     }
 
     const userResult = await pool.query(
-      'SELECT username, university, role FROM users WHERE username = $1',
+      `SELECT username, university, role,
+              certification_status, certification_school, certification_reject_reason
+       FROM users WHERE username = $1`,
       [username]
     );
     if (userResult.rowCount === 0) {
@@ -21,7 +23,13 @@ export async function GET(_request, { params }) {
 
     const viewer = await getCurrentUser();
     const isSelf = viewer === username;
-    const { role, university } = userResult.rows[0];
+    const {
+      role,
+      university,
+      certification_status: certStatus,
+      certification_school: certSchool,
+      certification_reject_reason: certRejectReason,
+    } = userResult.rows[0];
 
     const discussionRows = await pool.query(
       `SELECT q.id, q.title, q.type, q.replies, q.page_range, q.book_id, q.node_id,
@@ -110,6 +118,7 @@ export async function GET(_request, { params }) {
       username,
       role: role || 'user',
       isSelf,
+      certified: (certStatus || 'none') === 'approved',
       stats: {
         books: bookCountResult.rows[0]?.count || 0,
         discussions: discussionCountResult.rows[0]?.count || 0,
@@ -121,6 +130,9 @@ export async function GET(_request, { params }) {
 
     if (isSelf) {
       payload.university = university || '';
+      payload.certificationStatus = certStatus || 'none';
+      payload.certificationSchool = certSchool || '';
+      payload.certificationRejectReason = certRejectReason || '';
       const booksResult = await pool.query(
         `SELECT DISTINCT b.id, b.title, b.author,
            (SELECT COUNT(*)::int FROM questions WHERE book_id = b.id) AS discussions

@@ -9,7 +9,15 @@ CREATE TABLE IF NOT EXISTS users (
   university TEXT,
   role TEXT DEFAULT 'user',
   email_verified BOOLEAN DEFAULT false,
-  banned BOOLEAN DEFAULT false
+  banned BOOLEAN DEFAULT false,
+  certification_status TEXT DEFAULT 'none',
+  certification_school TEXT,
+  certification_code TEXT,
+  certification_agreed_at TIMESTAMPTZ,
+  certification_submitted_at TIMESTAMPTZ,
+  certification_reviewed_at TIMESTAMPTZ,
+  certification_reviewed_by TEXT,
+  certification_reject_reason TEXT
 );
 
 CREATE TABLE IF NOT EXISTS verification_codes (

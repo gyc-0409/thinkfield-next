@@ -55,8 +55,8 @@ export default function CertificationPage() {
       setError('请先阅读并同意认证信息告知书');
       return;
     }
-    if (!/^\d{12}$/.test(code.trim())) {
-      setError('请输入 12 位在线验证码');
+    if (!/^[A-Za-z0-9]{12}$/.test(code.trim())) {
+      setError('请输入 12 位在线验证码（字母或数字）');
       return;
     }
     setSubmitting(true);
@@ -64,7 +64,7 @@ export default function CertificationPage() {
       const res = await fetch('/api/certification', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code: code.trim(), agreed: true }),
+        body: JSON.stringify({ code: code.trim().toUpperCase(), agreed: true }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || '提交失败');
@@ -131,10 +131,42 @@ export default function CertificationPage() {
 
         {canSubmit && (
           <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="rounded-md border border-gray-200 bg-white p-4 sm:p-5 text-sm text-gray-700 leading-relaxed">
-              <p className="font-medium text-gray-900 mb-3">如何获取验证码</p>
-              <p>
-                请登录学信网（网页或 APP），申请「教育部学籍在线验证报告」，将获取的 12 位在线验证码填入下方。
+            <div className="rounded-md border border-gray-200 bg-white p-4 sm:p-5 text-sm text-gray-700 leading-relaxed space-y-4">
+              <p className="font-medium text-gray-900">如何获取在线验证码</p>
+
+              <div>
+                <p className="font-medium text-gray-800 mb-2">网页版</p>
+                <ol className="list-decimal list-inside space-y-1.5 text-gray-600">
+                  <li>
+                    打开学信网{' '}
+                    <a
+                      href="https://www.chsi.com.cn/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-gray-800 underline underline-offset-2 hover:text-gray-950"
+                    >
+                      https://www.chsi.com.cn/
+                    </a>
+                    {' '}并登录
+                  </li>
+                  <li>登录成功后，点击「学信档案」</li>
+                  <li>进入后点击「登录学信档案」</li>
+                  <li>进入后点击「在线验证报告」的「查看」</li>
+                  <li>查看「教育部学籍在线验证报告」，获取 12 位在线验证码</li>
+                </ol>
+              </div>
+
+              <div>
+                <p className="font-medium text-gray-800 mb-2">APP 版</p>
+                <ol className="list-decimal list-inside space-y-1.5 text-gray-600">
+                  <li>打开学信网 APP 并登录</li>
+                  <li>登录成功后，点击「在线验证报告」</li>
+                  <li>进入后查看「教育部学籍在线验证报告」，获取 12 位在线验证码</li>
+                </ol>
+              </div>
+
+              <p className="text-gray-500 text-xs">
+                验证码一般为 12 位，可包含字母和数字。将验证码填入下方输入框即可提交。
               </p>
             </div>
 
@@ -160,11 +192,11 @@ export default function CertificationPage() {
               <label className="block text-sm font-medium text-gray-800 mb-2">在线验证码</label>
               <input
                 value={code}
-                onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 12))}
-                placeholder="请输入 12 位在线验证码"
-                inputMode="numeric"
+                onChange={(e) => setCode(e.target.value.replace(/[^A-Za-z0-9]/g, '').slice(0, 12).toUpperCase())}
+                placeholder="请输入 12 位在线验证码（字母或数字）"
                 autoComplete="off"
-                className="w-full border border-gray-200 rounded-md px-3 py-2.5 text-sm focus:outline-none focus:border-gray-400 placeholder:text-gray-400"
+                spellCheck={false}
+                className="w-full border border-gray-200 rounded-md px-3 py-2.5 text-sm tracking-wider font-mono focus:outline-none focus:border-gray-400 placeholder:text-gray-400 placeholder:tracking-normal placeholder:font-sans"
               />
             </div>
 

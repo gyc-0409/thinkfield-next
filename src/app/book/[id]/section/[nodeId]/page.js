@@ -255,9 +255,9 @@ function SectionContent() {
           </svg>
         </button>
         <h2 className="text-sm font-medium text-gray-800 truncate flex-1 text-center px-2">{sectionTitle}</h2>
-        <button onClick={handleTocClick} className={`inline-flex h-9 w-9 items-center justify-center rounded-md border border-gray-300 bg-gray-100 text-gray-700 hover:bg-gray-200 ${tocGlow ? 'btn-glow' : ''}`} title="目录">
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+        <button onClick={handleGoHome} className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-gray-300 bg-gray-100 text-gray-700 hover:bg-gray-200" title="返回主页">
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l9-8 9 8M5 10v10a1 1 0 001 1h4a1 1 0 001-1v-5h2v5a1 1 0 001 1h4a1 1 0 001-1V10" />
           </svg>
         </button>
       </div>
@@ -266,14 +266,18 @@ function SectionContent() {
       {sidebarOpen && (
         <div className="md:hidden fixed inset-0 z-30 flex">
           <div className="absolute inset-0" style={{ backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }} onClick={() => setSidebarOpen(false)} />
-          <div className="relative w-72 bg-white shadow-2xl h-full overflow-y-auto animate-slide-in">
+          <div className="relative w-72 bg-white shadow-2xl h-full overflow-y-auto animate-slide-in flex flex-col">
+            <button
+              onClick={() => { handleGoHome(); setSidebarOpen(false); }}
+              className="w-full flex items-center gap-2 px-4 py-3.5 text-sm text-gray-800 hover:bg-gray-50 border-b border-gray-200 transition-colors"
+            >
+              <svg className="w-4 h-4 text-gray-600 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l9-8 9 8M5 10v10a1 1 0 001 1h4a1 1 0 001-1v-5h2v5a1 1 0 001 1h4a1 1 0 001-1V10" />
+              </svg>
+              <span>返回主页</span>
+            </button>
             <div className="p-4 border-b border-gray-200 flex items-center gap-2">
               <h2 className="text-sm font-medium text-gray-800 truncate flex-1">{sectionTitle}</h2>
-              <button onClick={handleTocClick} className={`inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md border border-gray-300 bg-gray-100 text-gray-700 hover:bg-gray-200 ${tocGlow ? 'btn-glow' : ''}`} title="目录">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-              </button>
               <button onClick={() => setSidebarOpen(false)} className="inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md border border-gray-300 bg-gray-100 text-gray-700 hover:bg-gray-200" title="收起边栏">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M11 19l-7-7 7-7M18 19l-7-7 7-7" />
@@ -281,11 +285,20 @@ function SectionContent() {
               </button>
             </div>
             <div className="border-b border-gray-200">
+              <button
+                onClick={() => { handleTocClick(); setSidebarOpen(false); }}
+                className={`w-full flex items-center gap-2 px-4 py-3 text-sm text-gray-800 hover:bg-gray-50 border-b border-gray-100 ${tocGlow ? 'btn-glow' : ''}`}
+              >
+                <svg className="w-4 h-4 text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 19.5A2.5 2.5 0 016.5 17H20M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z" />
+                </svg>
+                <span className="flex-1 text-left">目录</span>
+              </button>
               <button onClick={() => { handleNewDiscussion(); setSidebarOpen(false); }} className="w-full flex items-center gap-2 px-4 py-3 text-sm text-gray-800 hover:bg-gray-50 border-b border-gray-100">
                 <svg className="w-4 h-4 text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                 </svg>
-                <span className="flex-1 text-left">发起新讨论</span>
+                <span className="flex-1 text-left">讨论区</span>
                 <span className="text-xl font-light text-gray-500 leading-none">+</span>
               </button>
               <button onClick={() => { navigate(`/book/${bookId}/exercises?nodeId=${nodeId}`); setSidebarOpen(false); }} className="w-full flex items-center gap-2 px-4 py-3 text-sm text-gray-800 hover:bg-gray-50">
@@ -298,7 +311,7 @@ function SectionContent() {
                 </svg>
               </button>
             </div>
-            <div className="p-4">
+            <div className="p-4 flex-1">
               {questions.length === 0 ? (
                 <p className="text-sm text-gray-400">暂无讨论</p>
               ) : (
@@ -341,17 +354,17 @@ function SectionContent() {
           className="hidden md:flex border-r border-gray-200 flex-col h-full overflow-hidden bg-white relative flex-shrink-0"
           style={{ width: sidebarWidth }}
         >
-          <div className="p-4 border-b border-gray-200 flex items-center gap-2">
+          <button
+            onClick={handleGoHome}
+            className="w-full flex items-center gap-2 px-4 py-3.5 text-sm text-gray-800 hover:bg-gray-50 border-b border-gray-200 transition-colors flex-shrink-0"
+          >
+            <svg className="w-4 h-4 text-gray-600 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l9-8 9 8M5 10v10a1 1 0 001 1h4a1 1 0 001-1v-5h2v5a1 1 0 001 1h4a1 1 0 001-1V10" />
+            </svg>
+            <span>返回主页</span>
+          </button>
+          <div className="p-4 border-b border-gray-200 flex items-center gap-2 flex-shrink-0">
             <h2 className="text-sm font-medium text-gray-800 truncate flex-1">{sectionTitle}</h2>
-            <button
-              onClick={handleTocClick}
-              className={`inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md border border-gray-300 bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors ${tocGlow ? 'btn-glow' : ''}`}
-              title="目录"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            </button>
             <button
               onClick={() => setSidebarOpen(false)}
               className="inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md border border-gray-300 bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
@@ -362,12 +375,21 @@ function SectionContent() {
               </svg>
             </button>
           </div>
-          <div className="border-b border-gray-200">
+          <div className="border-b border-gray-200 flex-shrink-0">
+            <button
+              onClick={handleTocClick}
+              className={`w-full flex items-center gap-2 px-4 py-3 text-sm text-gray-800 hover:bg-gray-50 border-b border-gray-100 transition-colors ${tocGlow ? 'btn-glow' : ''}`}
+            >
+              <svg className="w-4 h-4 text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 19.5A2.5 2.5 0 016.5 17H20M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z" />
+              </svg>
+              <span className="flex-1 text-left">目录</span>
+            </button>
             <button onClick={handleNewDiscussion} className="w-full flex items-center gap-2 px-4 py-3 text-sm text-gray-800 hover:bg-gray-50 border-b border-gray-100 transition-colors">
               <svg className="w-4 h-4 text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
               </svg>
-              <span className="flex-1 text-left">发起新讨论</span>
+              <span className="flex-1 text-left">讨论区</span>
               <span className="text-xl font-light text-gray-500 leading-none">+</span>
             </button>
             <button onClick={() => navigate(`/book/${bookId}/exercises?nodeId=${nodeId}`)} className="w-full flex items-center gap-2 px-4 py-3 text-sm text-gray-800 hover:bg-gray-50 transition-colors">
@@ -482,11 +504,21 @@ function SectionContent() {
         <div className="absolute inset-0 z-20 flex">
           <div className="absolute inset-0" style={{ backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }} onClick={() => setShowChapterPanel(false)} />
           <div className="relative w-72 bg-white shadow-2xl h-full overflow-y-auto z-30 animate-slide-in">
-            <div className="p-4 border-b border-gray-100">
-              <button onClick={handleGoHome} className="text-sm text-gray-500 hover:text-gray-700 transition-colors mb-2 flex items-center gap-1">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>返回主页
-              </button>
-              <h3 className="text-sm font-medium text-gray-800 truncate">{book?.title || ''}</h3>
+            <div className="p-4 border-b border-gray-100 sticky top-0 bg-white z-10">
+              <div className="flex items-center justify-between gap-2 mb-1">
+                <h3 className="text-sm font-medium text-gray-800 truncate flex-1">{book?.title || ''}</h3>
+                <button
+                  type="button"
+                  onClick={() => setShowChapterPanel(false)}
+                  className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md text-gray-500 hover:bg-gray-100 hover:text-gray-800 transition-colors"
+                  title="关闭目录"
+                  aria-label="关闭目录"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
             </div>
             <div className="p-4">
               <BookTree tree={book?.tree || []} onSelectLeaf={handleLeafSelect} />

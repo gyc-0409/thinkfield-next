@@ -175,7 +175,7 @@ function ExercisesContent() {
     router.push(url);
   };
 
-  const handleTocClick = () => {
+  const handleBackToDiscussion = () => {
     localStorage.setItem('thinkfield-toc-clicked', '1');
     setTocGlow(false);
     navigate(`/book/${bookId}/section/${nodeId}`);
@@ -197,12 +197,12 @@ function ExercisesContent() {
         </button>
         <h2 className="text-sm font-medium text-gray-800 truncate flex-1 text-center px-2">{sectionTitle}</h2>
         <button
-          onClick={handleTocClick}
+          onClick={handleBackToDiscussion}
           className={`inline-flex h-9 w-9 items-center justify-center rounded-md border border-gray-300 bg-gray-100 text-gray-700 hover:bg-gray-200 ${tocGlow ? 'btn-glow' : ''}`}
-          title="返回讨论"
+          title="返回讨论区"
         >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l9-8 9 8M5 10v10a1 1 0 001 1h4a1 1 0 001-1v-5h2v5a1 1 0 001 1h4a1 1 0 001-1V10" />
           </svg>
         </button>
       </div>
@@ -211,18 +211,18 @@ function ExercisesContent() {
       {sidebarOpen && (
         <div className="md:hidden fixed inset-0 z-30 flex">
           <div className="absolute inset-0" style={{ backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }} onClick={() => setSidebarOpen(false)} />
-          <div className="relative w-72 bg-white shadow-2xl h-full overflow-y-auto animate-slide-in">
+          <div className="relative w-72 bg-white shadow-2xl h-full overflow-y-auto animate-slide-in flex flex-col">
+            <button
+              onClick={() => { handleBackToDiscussion(); setSidebarOpen(false); }}
+              className={`w-full flex items-center gap-2 px-4 py-3.5 text-sm text-gray-800 hover:bg-gray-50 border-b border-gray-200 transition-colors ${tocGlow ? 'btn-glow' : ''}`}
+            >
+              <svg className="w-4 h-4 text-gray-600 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l9-8 9 8M5 10v10a1 1 0 001 1h4a1 1 0 001-1v-5h2v5a1 1 0 001 1h4a1 1 0 001-1V10" />
+              </svg>
+              <span>返回讨论区</span>
+            </button>
             <div className="p-4 border-b border-gray-200 flex items-center gap-2">
               <h2 className="text-sm font-medium text-gray-800 flex-1">习题列表</h2>
-              <button
-                onClick={handleTocClick}
-                className={`inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md border border-gray-300 bg-gray-100 text-gray-700 hover:bg-gray-200 ${tocGlow ? 'btn-glow' : ''}`}
-                title="返回讨论"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-                </svg>
-              </button>
               <button
                 onClick={() => setSidebarOpen(false)}
                 className="inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md border border-gray-300 bg-gray-100 text-gray-700 hover:bg-gray-200"
@@ -238,7 +238,7 @@ function ExercisesContent() {
                 ＋ 添加习题
               </button>
             </div>
-            <div className="p-4">
+            <div className="p-4 flex-1">
               {exercises.length === 0 ? (
                 <p className="text-sm text-gray-400">暂无习题</p>
               ) : (
@@ -266,17 +266,17 @@ function ExercisesContent() {
           className="hidden md:flex border-r border-gray-200 flex-col h-full overflow-hidden bg-white relative flex-shrink-0"
           style={{ width: sidebarWidth }}
         >
-          <div className="p-4 border-b border-gray-200 flex items-center gap-2">
+          <button
+            onClick={handleBackToDiscussion}
+            className={`w-full flex items-center gap-2 px-4 py-3.5 text-sm text-gray-800 hover:bg-gray-50 border-b border-gray-200 transition-colors flex-shrink-0 ${tocGlow ? 'btn-glow' : ''}`}
+          >
+            <svg className="w-4 h-4 text-gray-600 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l9-8 9 8M5 10v10a1 1 0 001 1h4a1 1 0 001-1v-5h2v5a1 1 0 001 1h4a1 1 0 001-1V10" />
+            </svg>
+            <span>返回讨论区</span>
+          </button>
+          <div className="p-4 border-b border-gray-200 flex items-center gap-2 flex-shrink-0">
             <h2 className="text-sm font-medium text-gray-800 flex-1">习题列表</h2>
-            <button
-              onClick={handleTocClick}
-              className={`inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md border border-gray-300 bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors ${tocGlow ? 'btn-glow' : ''}`}
-              title="返回讨论"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
             <button
               onClick={() => setSidebarOpen(false)}
               className="inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md border border-gray-300 bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
@@ -287,7 +287,7 @@ function ExercisesContent() {
               </svg>
             </button>
           </div>
-          <div className="px-4 py-2 border-b border-gray-200">
+          <div className="px-4 py-2 border-b border-gray-200 flex-shrink-0">
             <button onClick={() => { setShowAddExercise(true); setSelectedExerciseId(null); }} className="w-full text-left text-sm text-gray-700 hover:bg-gray-50 px-2 py-2 rounded transition-colors">
               ＋ 添加习题
             </button>

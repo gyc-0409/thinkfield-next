@@ -5,6 +5,7 @@ import CommentTree from '@/components/CommentTree';
 import CommentInput from '@/components/CommentInput';
 import LatexPreviewGroup from '@/components/LatexPreviewGroup';
 import { renderLatexToHTML } from '@/lib/renderLatex';
+import { normalizeLikedBy } from '@/lib/likedBy';
 
 export default function ThoughtCard({
   thoughts,
@@ -12,9 +13,11 @@ export default function ThoughtCard({
   isLastPage,
   questionId,
   onThoughtAdded,
+  onThoughtLike,
   onQuote,
   comments,
   onReply,
+  onCommentLike,
   quoteText,
   quoteStart,
   quoteEnd,
@@ -43,25 +46,11 @@ export default function ThoughtCard({
     return () => window.removeEventListener('resize', check);
   }, []);
 
-  // 点赞状态（liked_by 可能是数组或 JSON 字符串）
-  const getLikedBy = (t) => {
-    if (!t?.liked_by) return [];
-    if (Array.isArray(t.liked_by)) return t.liked_by;
-    if (typeof t.liked_by === 'string') {
-      try {
-        const parsed = JSON.parse(t.liked_by);
-        return Array.isArray(parsed) ? parsed : [];
-      } catch {
-        return [];
-      }
-    }
-    return [];
-  };
-  const [liked, setLiked] = useState(() => getLikedBy(thought).includes(currentUser));
+  const [liked, setLiked] = useState(() => normalizeLikedBy(thought?.liked_by).includes(currentUser));
   const [likes, setLikes] = useState(thought?.likes || 0);
   useEffect(() => {
     if (thought) {
-      setLiked(getLikedBy(thought).includes(currentUser));
+      setLiked(normalizeLikedBy(thought.liked_by).includes(currentUser));
       setLikes(thought.likes || 0);
     }
   }, [thought, currentUser, currentPage]);
@@ -202,11 +191,13 @@ export default function ThoughtCard({
     setSubmitting(false);
   };
 
-  // 点赞（乐观更新）
+  // 点赞（乐观更新，并写回父级数据以免翻页后丢失）
   const handleLike = async () => {
     if (!requireLogin()) return;
+    if (!thought) return;
     const wasLiked = liked;
-    setLiked(!wasLiked);
+    const nextLiked = !wasLiked;
+    setLiked(nextLiked);
     setLikes(prev => wasLiked ? Math.max(prev - 1, 0) : prev + 1);
     try {
       const res = await fetch(`/api/questions/${questionId}/thoughts/${thought.id}/like`, {
@@ -218,6 +209,7 @@ export default function ThoughtCard({
       } else {
         const data = await res.json();
         setLikes(data.likes);
+        onThoughtLike?.(thought.id, { likes: data.likes, liked: nextLiked });
       }
     } catch (e) {
       setLiked(wasLiked);
@@ -283,6 +275,7 @@ export default function ThoughtCard({
             onReply={onReply}
             onQuoteClick={handleQuoteClick}
             onDelete={onCommentPosted}
+            onCommentLike={onCommentLike}
             currentUser={currentUser}
           />
         </div>

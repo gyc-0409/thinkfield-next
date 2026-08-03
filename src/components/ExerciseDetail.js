@@ -5,8 +5,11 @@ import LoadingDots from '@/components/LoadingDots';
 import { renderLatexToHTML } from '@/lib/renderLatex';
 import useSWR from 'swr';
 import { fetcher } from '@/lib/fetcher';
+import { useAuth } from '@/context/AuthContext';
+import { applyLikeState, mapContinuationTree } from '@/lib/likedBy';
 
 export default function ExerciseDetail({ exerciseId, bookType }) {
+  const { user } = useAuth();
   const [currentPage, setCurrentPage] = useState(0);
   const prevAnswersLengthRef = useRef(0);
 
@@ -27,9 +30,45 @@ export default function ExerciseDetail({ exerciseId, bookType }) {
     prevAnswersLengthRef.current = newLen;
   }, [answers, currentPage]);
 
+  useEffect(() => {
+    setCurrentPage(0);
+  }, [exerciseId]);
+
   const handleAnswerAdded = useCallback(() => {
     mutate();
   }, [mutate]);
+
+  const handleAnswerLike = useCallback((answerId, { likes, liked }) => {
+    if (!user) return;
+    mutate((ex) => {
+      if (!ex?.answers) return ex;
+      return {
+        ...ex,
+        answers: ex.answers.map((a) => {
+          if (a.id !== answerId) return a;
+          return { ...a, likes, liked_by: applyLikeState(a.liked_by, user, liked) };
+        }),
+      };
+    }, { revalidate: false });
+  }, [mutate, user]);
+
+  const handleContinuationLike = useCallback((contId, { likes, liked }) => {
+    if (!user) return;
+    mutate((ex) => {
+      if (!ex?.answers) return ex;
+      return {
+        ...ex,
+        answers: ex.answers.map((a) => ({
+          ...a,
+          continuations: mapContinuationTree(a.continuations, contId, (c) => ({
+            ...c,
+            likes,
+            liked_by: applyLikeState(c.liked_by, user, liked),
+          })),
+        })),
+      };
+    }, { revalidate: false });
+  }, [mutate, user]);
 
   if (error) return <p className="text-red-500">加载失败</p>;
   if (!exercise) return <div className="p-4 flex justify-center"><LoadingDots /></div>;
@@ -50,6 +89,8 @@ export default function ExerciseDetail({ exerciseId, bookType }) {
           isLastPage={isLastPage}
           exerciseId={exerciseId}
           onAnswerAdded={handleAnswerAdded}
+          onAnswerLike={handleAnswerLike}
+          onContinuationLike={handleContinuationLike}
           bookType={bookType}
         />
         <div className="flex justify-center items-center gap-4 mt-4">

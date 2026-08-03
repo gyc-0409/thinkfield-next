@@ -4,10 +4,13 @@ import { useParams, useRouter } from 'next/navigation';
 import ThoughtCard from '@/components/ThoughtCard';
 import CommentTree from '@/components/CommentTree';
 import CommentInput from '@/components/CommentInput';
+import { useAuth } from '@/context/AuthContext';
+import { applyLikeState, mapCommentTree } from '@/lib/likedBy';
 
 export default function QuestionDetailPage() {
   const { id: questionId } = useParams();
   const router = useRouter();
+  const { user } = useAuth();
   const [question, setQuestion] = useState(null);
   const [thoughts, setThoughts] = useState([]);
   const [currentThoughtPage, setCurrentThoughtPage] = useState(0);
@@ -75,6 +78,23 @@ export default function QuestionDetailPage() {
     setCommentKey(prev => prev + 1); // 强制刷新 CommentInput
   };
 
+  const handleThoughtLike = useCallback((thoughtId, { likes, liked }) => {
+    if (!user) return;
+    setThoughts((prev) => prev.map((t) => {
+      if (t.id !== thoughtId) return t;
+      return { ...t, likes, liked_by: applyLikeState(t.liked_by, user, liked) };
+    }));
+  }, [user]);
+
+  const handleCommentLike = useCallback((commentId, { likes, liked }) => {
+    if (!user) return;
+    setComments((prev) => mapCommentTree(prev, commentId, (c) => ({
+      ...c,
+      likes,
+      liked_by: applyLikeState(c.liked_by, user, liked),
+    })));
+  }, [user]);
+
   if (loading) return <p className="text-gray-500 p-8">加载中...</p>;
   if (!question) return <p className="text-red-500 p-8">问题不存在</p>;
 
@@ -112,6 +132,8 @@ export default function QuestionDetailPage() {
           isLastPage={isLastPage}
           questionId={questionId}
           onThoughtAdded={fetchQuestion}
+          onThoughtLike={handleThoughtLike}
+          currentUser={user}
           onQuote={(text, start, end) => {
             // 传给 CommentInput
             window.__quoteText = text;
@@ -143,6 +165,8 @@ export default function QuestionDetailPage() {
             comments={comments}
             questionId={questionId}
             thoughtId={thoughts[currentThoughtPage]?.id}
+            currentUser={user}
+            onCommentLike={handleCommentLike}
             onReply={(parentId, authorName) => {
               window.__commentParentId = parentId;
               window.__commentReplyTo = authorName;

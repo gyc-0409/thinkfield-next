@@ -1,11 +1,14 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import AnswerCard from '@/components/AnswerCard';
+import { useAuth } from '@/context/AuthContext';
+import { applyLikeState, mapContinuationTree } from '@/lib/likedBy';
 
 export default function ExerciseDetailPage() {
   const { id: exerciseId } = useParams();
   const router = useRouter();
+  const { user } = useAuth();
   const [exercise, setExercise] = useState(null);
   const [answers, setAnswers] = useState([]);
   const [currentAnswerPage, setCurrentAnswerPage] = useState(0);
@@ -38,6 +41,26 @@ export default function ExerciseDetailPage() {
     if (currentAnswerPage < totalPages - 1) setCurrentAnswerPage(prev => prev + 1);
   };
 
+  const handleAnswerLike = useCallback((answerId, { likes, liked }) => {
+    if (!user) return;
+    setAnswers((prev) => prev.map((a) => {
+      if (a.id !== answerId) return a;
+      return { ...a, likes, liked_by: applyLikeState(a.liked_by, user, liked) };
+    }));
+  }, [user]);
+
+  const handleContinuationLike = useCallback((contId, { likes, liked }) => {
+    if (!user) return;
+    setAnswers((prev) => prev.map((a) => ({
+      ...a,
+      continuations: mapContinuationTree(a.continuations, contId, (c) => ({
+        ...c,
+        likes,
+        liked_by: applyLikeState(c.liked_by, user, liked),
+      })),
+    })));
+  }, [user]);
+
   if (loading) return <p className="text-gray-500 p-8">加载中...</p>;
   if (!exercise) return <p className="text-red-500 p-8">习题不存在</p>;
 
@@ -59,6 +82,8 @@ export default function ExerciseDetailPage() {
           isLastPage={isLastPage}
           exerciseId={exerciseId}
           onAnswerAdded={fetchExercise}
+          onAnswerLike={handleAnswerLike}
+          onContinuationLike={handleContinuationLike}
         />
 
         {/* 翻页控件 */}

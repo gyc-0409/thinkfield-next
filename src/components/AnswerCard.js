@@ -7,8 +7,18 @@ import CommentInput from '@/components/CommentInput';
 import LatexPreviewGroup from '@/components/LatexPreviewGroup';
 import ContinuationNode, { FocusContext } from '@/components/ContinuationNode';
 import { resolveContextMenuQuote } from '@/lib/quoteSelection';
+import { normalizeLikedBy, applyLikeState, mapCommentTree } from '@/lib/likedBy';
 
-export default function AnswerCard({ answers, currentPage, isLastPage, exerciseId, onAnswerAdded, bookType }) {
+export default function AnswerCard({
+  answers,
+  currentPage,
+  isLastPage,
+  exerciseId,
+  onAnswerAdded,
+  onAnswerLike,
+  onContinuationLike,
+  bookType,
+}) {
   const { user, requireLogin } = useAuth();
   const [cutMode, setCutMode] = useState(false);
   const [cutTarget, setCutTarget] = useState(null);
@@ -31,7 +41,7 @@ export default function AnswerCard({ answers, currentPage, isLastPage, exerciseI
   const longPressTimer = useRef(null);
   const touchStartPos = useRef({ x: 0, y: 0 });
   const currentAns = !isLastPage ? answers[currentPage] : null;
-  const [answerLiked, setAnswerLiked] = useState(currentAns?.liked_by?.includes(user) || false);
+  const [answerLiked, setAnswerLiked] = useState(() => normalizeLikedBy(currentAns?.liked_by).includes(user));
   const [answerLikes, setAnswerLikes] = useState(currentAns?.likes || 0);
   const [exerciseComments, setExerciseComments] = useState([]);
   const [quoteText, setQuoteText] = useState('');
@@ -42,7 +52,12 @@ export default function AnswerCard({ answers, currentPage, isLastPage, exerciseI
   const [showCommentInput, setShowCommentInput] = useState(false);
 
   useEffect(() => { const check = () => setIsMobile(window.innerWidth < 768); check(); window.addEventListener('resize', check); return () => window.removeEventListener('resize', check); }, []);
-  useEffect(() => { if (currentAns) { setAnswerLiked(currentAns.liked_by?.includes(user) || false); setAnswerLikes(currentAns.likes || 0); } }, [currentAns, user]);
+  useEffect(() => {
+    if (currentAns) {
+      setAnswerLiked(normalizeLikedBy(currentAns.liked_by).includes(user));
+      setAnswerLikes(currentAns.likes || 0);
+    }
+  }, [currentAns, user]);
   const fetchComments = useCallback(async () => { if (!currentAns) return; try { const res = await fetch(`/api/exercises/${exerciseId}/answers/${currentAns.id}/comments`); const data = await res.json(); setExerciseComments(Array.isArray(data) ? data : []); } catch { setExerciseComments([]); } }, [exerciseId, currentAns]);
   useEffect(() => { if (currentAns) { fetchComments(); setQuoteText(''); setReplyParentId(null); setShowCommentInput(false); } }, [currentAns, fetchComments]);
 
@@ -217,11 +232,34 @@ export default function AnswerCard({ answers, currentPage, isLastPage, exerciseI
   const handleAnswerLike = async () => {
     if (!requireLogin()) return;
     if (!currentAns) return;
+    const wasLiked = answerLiked;
+    const nextLiked = !wasLiked;
+    setAnswerLiked(nextLiked);
+    setAnswerLikes((prev) => (wasLiked ? Math.max(prev - 1, 0) : prev + 1));
     try {
       const res = await fetch(`/api/exercises/${exerciseId}/answers/${currentAns.id}/like`, { method: 'POST' });
-      if (res.ok) { const data = await res.json(); setAnswerLikes(data.likes); setAnswerLiked(!answerLiked); }
-    } catch { /* ignore */ }
+      if (res.ok) {
+        const data = await res.json();
+        setAnswerLikes(data.likes);
+        onAnswerLike?.(currentAns.id, { likes: data.likes, liked: nextLiked });
+      } else {
+        setAnswerLiked(wasLiked);
+        setAnswerLikes((prev) => (wasLiked ? prev + 1 : Math.max(prev - 1, 0)));
+      }
+    } catch {
+      setAnswerLiked(wasLiked);
+      setAnswerLikes((prev) => (wasLiked ? prev + 1 : Math.max(prev - 1, 0)));
+    }
   };
+
+  const handleCommentLike = useCallback((commentId, { likes, liked }) => {
+    if (!user) return;
+    setExerciseComments((prev) => mapCommentTree(prev, commentId, (c) => ({
+      ...c,
+      likes,
+      liked_by: applyLikeState(c.liked_by, user, liked),
+    })));
+  }, [user]);
 
   const showPreview = bookType !== 'literature';
 
@@ -318,14 +356,14 @@ export default function AnswerCard({ answers, currentPage, isLastPage, exerciseI
                 cutTarget={cutTarget} showForm={showForm} formMotivation={formMotivation} formContent={formContent}
                 onFormMotivationChange={setFormMotivation} onFormContentChange={setFormContent}
                 onSubmitForm={handleSubmitForm} onCancelForm={handleCancelForm} exerciseId={exerciseId} answerId={ans.id}
-                currentUser={user} bookType={bookType} onQuoteText={handleQuote} />
+                currentUser={user} bookType={bookType} onQuoteText={handleQuote} onContinuationLike={onContinuationLike} />
             ))}
           </ul>
         )}
         <p className="text-xs text-gray-400 mt-2">选中文字后右键即可引用并追问</p>
         {exerciseComments.length > 0 && (
           <div className="mt-4 pt-4 border-t border-gray-200">
-            <CommentTree comments={exerciseComments} questionId={null} thoughtId={null} onReply={handleReply} onQuoteClick={handleQuoteClick} onDelete={handleCommentPosted} currentUser={user} deleteComment={handleDeleteExerciseComment} />
+            <CommentTree comments={exerciseComments} questionId={null} thoughtId={null} onReply={handleReply} onQuoteClick={handleQuoteClick} onDelete={handleCommentPosted} onCommentLike={handleCommentLike} currentUser={user} deleteComment={handleDeleteExerciseComment} />
           </div>
         )}
         {showCommentInput && (

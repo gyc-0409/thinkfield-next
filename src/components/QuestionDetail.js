@@ -6,6 +6,7 @@ import ThoughtCard from '@/components/ThoughtCard';
 import LoadingDots from '@/components/LoadingDots';
 import { renderLatexToHTML } from '@/lib/renderLatex';
 import { useAuth } from '@/context/AuthContext';
+import { applyLikeState, mapCommentTree } from '@/lib/likedBy';
 
 export default function QuestionDetail({ questionId, bookType }) {
   const { user } = useAuth();
@@ -61,6 +62,29 @@ export default function QuestionDetail({ questionId, bookType }) {
     mutate();
   }, [mutate]);
 
+  const handleThoughtLike = useCallback((thoughtId, { likes, liked }) => {
+    if (!user) return;
+    mutate((q) => {
+      if (!q?.thoughts) return q;
+      return {
+        ...q,
+        thoughts: q.thoughts.map((t) => {
+          if (t.id !== thoughtId) return t;
+          return { ...t, likes, liked_by: applyLikeState(t.liked_by, user, liked) };
+        }),
+      };
+    }, { revalidate: false });
+  }, [mutate, user]);
+
+  const handleCommentLike = useCallback((commentId, { likes, liked }) => {
+    if (!user) return;
+    setComments((prev) => mapCommentTree(prev, commentId, (c) => ({
+      ...c,
+      likes,
+      liked_by: applyLikeState(c.liked_by, user, liked),
+    })));
+  }, [user]);
+
   const handleCommentPosted = useCallback(() => {
     if (currentThought) fetchComments(currentThought.id);
   }, [currentThought, fetchComments]);
@@ -94,6 +118,7 @@ export default function QuestionDetail({ questionId, bookType }) {
           isLastPage={isLastPage}
           questionId={questionId}
           onThoughtAdded={handleThoughtAdded}
+          onThoughtLike={handleThoughtLike}
           onQuote={(text, start, end) => {
             setQuoteText(text);
             setQuoteStart(start);
@@ -107,6 +132,7 @@ export default function QuestionDetail({ questionId, bookType }) {
             setReplyAuthor(authorName);
             setQuoteText('');
           }}
+          onCommentLike={handleCommentLike}
           quoteText={quoteText}
           quoteStart={quoteStart}
           quoteEnd={quoteEnd}

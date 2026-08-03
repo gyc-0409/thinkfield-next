@@ -1,7 +1,8 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { normalizeLikedBy } from '@/lib/likedBy';
 
-export default function CommentTree({ comments, depth = 0, questionId, thoughtId, onReply, onQuoteClick, onDelete, currentUser, deleteComment }) {
+export default function CommentTree({ comments, depth = 0, questionId, thoughtId, onReply, onQuoteClick, onDelete, onCommentLike, currentUser, deleteComment }) {
   if (!comments || comments.length === 0) return null;
 
   return (
@@ -16,6 +17,7 @@ export default function CommentTree({ comments, depth = 0, questionId, thoughtId
           onReply={onReply}
           onQuoteClick={onQuoteClick}
           onDelete={onDelete}
+          onCommentLike={onCommentLike}
           currentUser={currentUser}
           deleteComment={deleteComment}
         />
@@ -24,24 +26,20 @@ export default function CommentTree({ comments, depth = 0, questionId, thoughtId
   );
 }
 
-function CommentItem({ comment, depth, questionId, thoughtId, onReply, onQuoteClick, onDelete, currentUser, deleteComment }) {
+function CommentItem({ comment, depth, questionId, thoughtId, onReply, onQuoteClick, onDelete, onCommentLike, currentUser, deleteComment }) {
   const isDeleted = comment.author === '[已删除]';
-  const likedByList = (() => {
-    if (Array.isArray(comment.liked_by)) return comment.liked_by;
-    if (typeof comment.liked_by === 'string') {
-      try {
-        const parsed = JSON.parse(comment.liked_by);
-        return Array.isArray(parsed) ? parsed : [];
-      } catch {
-        return [];
-      }
-    }
-    return [];
-  })();
   const [likes, setLikes] = useState(comment.likes || 0);
-  const [liked, setLiked] = useState(isDeleted ? false : likedByList.includes(currentUser));
+  const [liked, setLiked] = useState(() => (
+    isDeleted ? false : normalizeLikedBy(comment.liked_by).includes(currentUser)
+  ));
   const [loading, setLoading] = useState(false);
   const [deleting, setDeleting] = useState(false);
+
+  useEffect(() => {
+    const list = normalizeLikedBy(comment.liked_by);
+    setLiked(isDeleted ? false : list.includes(currentUser));
+    setLikes(comment.likes || 0);
+  }, [comment.id, comment.liked_by, comment.likes, currentUser, isDeleted]);
 
   const hasChildren = comment.children && comment.children.length > 0;
 
@@ -60,15 +58,23 @@ function CommentItem({ comment, depth, questionId, thoughtId, onReply, onQuoteCl
   const handleLike = async () => {
     if (loading || isDeleted) return;
     setLoading(true);
+    const wasLiked = liked;
+    const nextLiked = !wasLiked;
+    setLiked(nextLiked);
+    setLikes((prev) => (wasLiked ? Math.max(prev - 1, 0) : prev + 1));
     try {
       const res = await fetch(`/api/comments/${comment.id}/like`, { method: 'POST' });
       if (res.ok) {
         const data = await res.json();
         setLikes(data.likes);
-        setLiked(!liked);
+        onCommentLike?.(comment.id, { likes: data.likes, liked: nextLiked });
+      } else {
+        setLiked(wasLiked);
+        setLikes((prev) => (wasLiked ? prev + 1 : Math.max(prev - 1, 0)));
       }
     } catch (e) {
-      // 忽略
+      setLiked(wasLiked);
+      setLikes((prev) => (wasLiked ? prev + 1 : Math.max(prev - 1, 0)));
     }
     setLoading(false);
   };
@@ -160,6 +166,7 @@ function CommentItem({ comment, depth, questionId, thoughtId, onReply, onQuoteCl
             onReply={onReply}
             onQuoteClick={onQuoteClick}
             onDelete={onDelete}
+            onCommentLike={onCommentLike}
             currentUser={currentUser}
             deleteComment={deleteComment}
           />

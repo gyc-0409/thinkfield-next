@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, useCallback, useRef, Suspense } from 'react';
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import ExerciseDetail from '@/components/ExerciseDetail';
@@ -27,6 +27,47 @@ function ExercisesContent() {
   const [formError, setFormError] = useState('');
 
   const [tocGlow, setTocGlow] = useState(false);
+  const [sidebarWidth, setSidebarWidth] = useState(288);
+  const resizingRef = useRef(false);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('thinkfield-exercises-sidebar-width');
+      if (saved) {
+        const n = parseInt(saved, 10);
+        if (!isNaN(n) && n >= 220 && n <= 560) setSidebarWidth(n);
+      }
+    } catch { /* ignore */ }
+  }, []);
+
+  const onResizeStart = useCallback((e) => {
+    e.preventDefault();
+    resizingRef.current = true;
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+
+    const onMove = (ev) => {
+      if (!resizingRef.current) return;
+      setSidebarWidth(Math.min(560, Math.max(220, ev.clientX)));
+    };
+    const onUp = () => {
+      if (!resizingRef.current) return;
+      resizingRef.current = false;
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+      setSidebarWidth((w) => {
+        try {
+          localStorage.setItem('thinkfield-exercises-sidebar-width', String(w));
+        } catch { /* ignore */ }
+        return w;
+      });
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+    };
+
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+  }, []);
 
   useEffect(() => {
     document.documentElement.style.overflow = 'hidden';
@@ -221,7 +262,10 @@ function ExercisesContent() {
 
       {/* 桌面端侧边栏 */}
       {sidebarOpen ? (
-        <div className="hidden md:flex w-72 border-r border-gray-200 flex-col h-full overflow-hidden bg-white">
+        <div
+          className="hidden md:flex border-r border-gray-200 flex-col h-full overflow-hidden bg-white relative flex-shrink-0"
+          style={{ width: sidebarWidth }}
+        >
           <div className="p-4 border-b border-gray-200 flex items-center gap-2">
             <h2 className="text-sm font-medium text-gray-800 flex-1">习题列表</h2>
             <button
@@ -266,6 +310,14 @@ function ExercisesContent() {
               </div>
             )}
           </div>
+          <div
+            role="separator"
+            aria-orientation="vertical"
+            aria-label="拖拽调整边栏宽度"
+            onMouseDown={onResizeStart}
+            className="absolute top-0 right-0 w-1.5 h-full cursor-col-resize z-20 hover:bg-gray-300/80 active:bg-gray-400/80"
+            title="拖拽调整宽度"
+          />
         </div>
       ) : (
         <div className="hidden md:flex w-12 flex-shrink-0 border-r border-gray-200 bg-white pt-3 justify-center">

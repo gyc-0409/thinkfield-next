@@ -4,6 +4,7 @@ import { useAuth } from '@/context/AuthContext';
 import { renderLatexToHTML } from '@/lib/renderLatex';
 import LatexPreviewGroup from '@/components/LatexPreviewGroup';
 import { resolveContextMenuQuote } from '@/lib/quoteSelection';
+import { normalizeLikedBy } from '@/lib/likedBy';
 
 export const FocusContext = createContext();
 export function useFocus() {
@@ -17,7 +18,7 @@ export default function ContinuationNode({
   cutTarget, showForm, formMotivation, formContent,
   onFormMotivationChange, onFormContentChange,
   onSubmitForm, onCancelForm, exerciseId,
-  currentUser, bookType, onQuoteText,
+  currentUser, bookType, onQuoteText, onContinuationLike,
 }) {
   const nodeId = `cont-${cont.id}`;
   const { focusPath, addFocus, removeFocus } = useFocus();
@@ -30,8 +31,7 @@ export default function ContinuationNode({
   const [touchMenu, setTouchMenu] = useState({ visible: false, x: 0, y: 0, startIdx: null, endIdx: null, text: '' });
   const longPressTimer = useRef(null);
   const touchStartPos = useRef({ x: 0, y: 0 });
-  const initialLiked = cont.liked_by?.includes(currentUser) || false;
-  const [liked, setLiked] = useState(initialLiked);
+  const [liked, setLiked] = useState(() => normalizeLikedBy(cont.liked_by).includes(currentUser));
   const [likes, setLikes] = useState(cont.likes || 0);
 
   useEffect(() => {
@@ -42,7 +42,7 @@ export default function ContinuationNode({
   }, []);
 
   useEffect(() => {
-    setLiked(cont.liked_by?.includes(currentUser) || false);
+    setLiked(normalizeLikedBy(cont.liked_by).includes(currentUser));
     setLikes(cont.likes || 0);
   }, [cont, currentUser]);
 
@@ -72,10 +72,24 @@ export default function ContinuationNode({
   const handleLike = async (e) => {
     e.stopPropagation();
     if (!requireLogin()) return;
+    const wasLiked = liked;
+    const nextLiked = !wasLiked;
+    setLiked(nextLiked);
+    setLikes((prev) => (wasLiked ? Math.max(prev - 1, 0) : prev + 1));
     try {
       const res = await fetch(`/api/exercises/${exerciseId}/continuations/${cont.id}/like`, { method: 'POST' });
-      if (res.ok) { const data = await res.json(); setLikes(data.likes); setLiked(!liked); }
-    } catch { /* ignore */ }
+      if (res.ok) {
+        const data = await res.json();
+        setLikes(data.likes);
+        onContinuationLike?.(cont.id, { likes: data.likes, liked: nextLiked });
+      } else {
+        setLiked(wasLiked);
+        setLikes((prev) => (wasLiked ? prev + 1 : Math.max(prev - 1, 0)));
+      }
+    } catch {
+      setLiked(wasLiked);
+      setLikes((prev) => (wasLiked ? prev + 1 : Math.max(prev - 1, 0)));
+    }
   };
 
   const getCharAtPosition = (clientX, clientY) => {
@@ -179,7 +193,7 @@ export default function ContinuationNode({
                     cutTarget={cutTarget} showForm={showForm} formMotivation={formMotivation} formContent={formContent}
                     onFormMotivationChange={onFormMotivationChange} onFormContentChange={onFormContentChange}
                     onSubmitForm={onSubmitForm} onCancelForm={onCancelForm} exerciseId={exerciseId}
-                    currentUser={currentUser} bookType={bookType} onQuoteText={onQuoteText} />
+                    currentUser={currentUser} bookType={bookType} onQuoteText={onQuoteText} onContinuationLike={onContinuationLike} />
                 ))}
               </ul>
             )}

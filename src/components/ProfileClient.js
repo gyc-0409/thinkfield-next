@@ -124,8 +124,16 @@ export default function ProfileClient({ username }) {
             <span className="text-gray-500">讨论</span>
           </div>
           <div>
+            <span className="block text-xl font-medium text-gray-900 tabular-nums">{data.stats.thoughts ?? 0}</span>
+            <span className="text-gray-500">思考</span>
+          </div>
+          <div>
             <span className="block text-xl font-medium text-gray-900 tabular-nums">{data.stats.answers}</span>
             <span className="text-gray-500">解答</span>
+          </div>
+          <div>
+            <span className="block text-xl font-medium text-gray-900 tabular-nums">{data.stats.likes ?? 0}</span>
+            <span className="text-gray-500">有价值</span>
           </div>
         </div>
 
@@ -136,11 +144,11 @@ export default function ProfileClient({ username }) {
           </section>
         )}
 
-        <div className="flex gap-1 border-b border-gray-200 mb-4">
+        <div className="flex gap-1 border-b border-gray-200 mb-4 overflow-x-auto">
           <button
             type="button"
             onClick={() => setTab('discussions')}
-            className={`px-4 py-2.5 text-sm transition-colors border-b-2 -mb-px ${
+            className={`px-4 py-2.5 text-sm whitespace-nowrap transition-colors border-b-2 -mb-px ${
               tab === 'discussions'
                 ? 'border-gray-800 text-gray-900 font-medium'
                 : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -150,8 +158,19 @@ export default function ProfileClient({ username }) {
           </button>
           <button
             type="button"
+            onClick={() => setTab('thoughts')}
+            className={`px-4 py-2.5 text-sm whitespace-nowrap transition-colors border-b-2 -mb-px ${
+              tab === 'thoughts'
+                ? 'border-gray-800 text-gray-900 font-medium'
+                : 'border-transparent text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            思考
+          </button>
+          <button
+            type="button"
             onClick={() => setTab('answers')}
-            className={`px-4 py-2.5 text-sm transition-colors border-b-2 -mb-px ${
+            className={`px-4 py-2.5 text-sm whitespace-nowrap transition-colors border-b-2 -mb-px ${
               tab === 'answers'
                 ? 'border-gray-800 text-gray-900 font-medium'
                 : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -185,6 +204,40 @@ export default function ProfileClient({ username }) {
                       {item.type === 'question' && <span>· 疑问</span>}
                       <span>· {item.replies} 回复</span>
                       {item.pageRange && <span>· 页码 {item.pageRange}</span>}
+                    </div>
+                  </Link>
+                </li>
+              ))
+            )}
+          </ul>
+        )}
+
+        {tab === 'thoughts' && (
+          <ul className="space-y-2">
+            {(data.thoughts || []).length === 0 ? (
+              <li className="text-sm text-gray-400 py-8 text-center">
+                {isSelf ? '还没有写下思考' : '暂无公开思考'}
+              </li>
+            ) : (
+              data.thoughts.map((item, idx) => (
+                <li key={item.id || `${item.questionId}-${idx}`}>
+                  <Link
+                    href={`/book/${item.bookId}/section/${item.nodeId}?q=${encodeURIComponent(item.questionId)}${item.id ? `&t=${encodeURIComponent(item.id)}` : ''}`}
+                    className="block rounded-md border border-gray-200 bg-white px-4 py-3 hover:border-gray-300 hover:bg-gray-50 transition-colors"
+                  >
+                    <div
+                      className="text-sm font-medium text-gray-900 line-clamp-2"
+                      dangerouslySetInnerHTML={{ __html: renderLatexToHTML(item.questionTitle) }}
+                    />
+                    {item.contentPreview && (
+                      <p className="mt-1 text-sm text-gray-600 line-clamp-2 whitespace-pre-wrap">
+                        {item.contentPreview}
+                      </p>
+                    )}
+                    <div className="mt-1 text-xs text-gray-500 flex flex-wrap gap-x-2 gap-y-0.5">
+                      <span>{item.bookTitle}</span>
+                      {item.sectionTitle && <span>· {item.sectionTitle}</span>}
+                      <span>· {item.likes} 有价值</span>
                     </div>
                   </Link>
                 </li>

@@ -12,6 +12,7 @@ function SectionContent() {
   const { id: bookId, nodeId } = useParams();
   const searchParams = useSearchParams();
   const deepQuestionId = searchParams.get('q');
+  const deepThoughtId = searchParams.get('t');
   const router = useRouter();
   const { user, requireLogin } = useAuth();
   const [questions, setQuestions] = useState([]);
@@ -509,7 +510,7 @@ function SectionContent() {
             </div>
           </div>
         ) : selectedQuestionId ? (
-          <QuestionDetail questionId={selectedQuestionId} bookType={book?.type} />
+          <QuestionDetail questionId={selectedQuestionId} bookType={book?.type} initialThoughtId={deepThoughtId} />
         ) : (
           <div className="flex items-center justify-center h-full text-gray-400 text-sm">请从左侧选择一个讨论</div>
         )}

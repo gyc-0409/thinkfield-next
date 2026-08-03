@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import useSWR from 'swr';
 import { fetcher } from '@/lib/fetcher';
 import ThoughtCard from '@/components/ThoughtCard';
@@ -9,7 +9,7 @@ import { useAuth } from '@/context/AuthContext';
 import { applyLikeState, mapCommentTree } from '@/lib/likedBy';
 import AuthorLink from '@/components/AuthorLink';
 
-export default function QuestionDetail({ questionId, bookType }) {
+export default function QuestionDetail({ questionId, bookType, initialThoughtId = null }) {
   const { user } = useAuth();
   const [currentThoughtPage, setCurrentThoughtPage] = useState(0);
   const [comments, setComments] = useState([]);
@@ -18,6 +18,7 @@ export default function QuestionDetail({ questionId, bookType }) {
   const [quoteEnd, setQuoteEnd] = useState(0);
   const [replyParentId, setReplyParentId] = useState(null);
   const [replyAuthor, setReplyAuthor] = useState('');
+  const appliedThoughtRef = useRef(null);
 
   const { data: question, error, mutate } = useSWR(
     questionId ? `/api/questions/${questionId}` : null,
@@ -35,7 +36,18 @@ export default function QuestionDetail({ questionId, bookType }) {
     setQuoteText('');
     setReplyParentId(null);
     setReplyAuthor('');
+    appliedThoughtRef.current = null;
   }, [questionId]);
+
+  useEffect(() => {
+    if (!initialThoughtId || !question?.thoughts?.length) return;
+    if (appliedThoughtRef.current === `${questionId}:${initialThoughtId}`) return;
+    const idx = question.thoughts.findIndex((t) => t.id === initialThoughtId);
+    if (idx >= 0) {
+      setCurrentThoughtPage(idx);
+      appliedThoughtRef.current = `${questionId}:${initialThoughtId}`;
+    }
+  }, [initialThoughtId, question?.thoughts, questionId]);
 
   const fetchComments = useCallback(async (thoughtId) => {
     if (!thoughtId || !questionId) return;

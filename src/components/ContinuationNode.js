@@ -4,6 +4,7 @@ import { useAuth } from '@/context/AuthContext';
 import { renderLatexToHTML } from '@/lib/renderLatex';
 import LatexPreviewGroup from '@/components/LatexPreviewGroup';
 import ContinuationPositionHint from '@/components/ContinuationPositionHint';
+import FocusTruncatedContent from '@/components/FocusTruncatedContent';
 import { resolveContextMenuQuote } from '@/lib/quoteSelection';
 import { normalizeLikedBy } from '@/lib/likedBy';
 import AuthorLink from '@/components/AuthorLink';
@@ -23,7 +24,7 @@ export default function ContinuationNode({
   currentUser, bookType, onQuoteText, onContinuationLike,
 }) {
   const nodeId = `cont-${cont.id}`;
-  const { focusPath, addFocus } = useFocus();
+  const { focusPath, addFocus, removeFocus } = useFocus();
   const isFocused = focusPath.includes(cont.id);
   const { requireLogin } = useAuth();
   const containerRef = useRef(null);
@@ -56,6 +57,7 @@ export default function ContinuationNode({
   const isVisible = focusPath.length === 0 || ancestorIds.some(id => focusPath.includes(id)) || isFocused;
   const isCutPoint = cutTarget?.nodeId === nodeId && cutTarget?.start != null;
   let cutAfterIdx;
+  let focusExitId = null;
   if (isCutPoint && showForm) {
     cutAfterIdx = cutTarget.start;
   } else if (isFocused) {
@@ -63,7 +65,10 @@ export default function ContinuationNode({
     if (idxInPath !== -1 && idxInPath < focusPath.length - 1) {
       const nextFocusedId = focusPath[idxInPath + 1];
       const childCont = cont.continuations?.find(c => c.id === nextFocusedId);
-      if (childCont) cutAfterIdx = childCont.start;
+      if (childCont) {
+        cutAfterIdx = childCont.start;
+        focusExitId = nextFocusedId;
+      }
     }
   }
 
@@ -179,10 +184,18 @@ export default function ContinuationNode({
               <div style={{ background: '#f3f4f6', padding: isMobile ? '6px 10px' : '8px 12px', borderRadius: 6, marginBottom: 8, fontSize: isMobile ? 13 : 14 }}
                 dangerouslySetInnerHTML={{ __html: `<span style="font-weight:600;color:#374151">动机：</span>${renderLatexToHTML(cont.motivation)}` }} />
             )}
-            <div className="answer-text-container" data-node-id={nodeId}
-              style={{ whiteSpace: 'pre-wrap', marginLeft: isMobile ? 4 : 8, marginBottom: 8, fontSize: isMobile ? '0.875rem' : 'inherit', touchAction: 'manipulation' }}
-              dangerouslySetInnerHTML={{ __html: renderLatexToHTML(cont.content, cutAfterIdx) }}
-              onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd} onContextMenu={handleContextMenu} />
+            <FocusTruncatedContent
+              content={cont.content}
+              cutAfterIdx={cutAfterIdx}
+              focusExitId={focusExitId}
+              onExitFocus={removeFocus}
+              nodeId={nodeId}
+              style={{ marginLeft: isMobile ? 4 : 8, marginBottom: 8, fontSize: isMobile ? '0.875rem' : 'inherit', touchAction: 'manipulation' }}
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+              onContextMenu={handleContextMenu}
+            />
             {touchMenu.visible && (
               <div className="fixed z-50 bg-white border border-gray-300 rounded-md shadow-lg py-1 px-0" style={{ left: touchMenu.x, top: touchMenu.y, transform: 'translate(-50%, -100%)' }}>
                 <button className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" onClick={handleTouchMenuQuote}>引用</button>

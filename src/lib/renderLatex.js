@@ -9,9 +9,10 @@ function escapeHtml(text) {
  * 将文本中的 LaTeX 公式 ($...$ 和 $$...$$) 渲染为 HTML，并保留字符级 span 用于截断点选择。
  * @param {string} text - 原始文本
  * @param {number} [cutAfterIdx] - 可选，在指定字符索引后截断并显示省略号
+ * @param {boolean} [skipEllipsis] - 为 true 时截断但不输出省略号（由外部 React 组件渲染）
  * @returns {string} HTML 字符串
  */
-export function renderLatexToHTML(text, cutAfterIdx) {
+export function renderLatexToHTML(text, cutAfterIdx, skipEllipsis = false) {
   if (!text) return '';
 
   const mathRegex = /(\$\$[\s\S]*?\$\$|\$[^$\n]*?\$|\\\[[\s\S]*?\\\]|\\\([\s\S]*?\\\))/g;
@@ -26,7 +27,7 @@ export function renderLatexToHTML(text, cutAfterIdx) {
       const idx = lastIdx + i;
       // 截断检查
       if (cutAfterIdx !== undefined && idx >= cutAfterIdx) {
-        result += '<span class="ellipsis-indicator">...</span>';
+        if (!skipEllipsis) result += '<span class="ellipsis-indicator">...</span>';
         return result;
       }
       const ch = before[i];
@@ -41,7 +42,7 @@ export function renderLatexToHTML(text, cutAfterIdx) {
     const formula = match[0];
     const formulaIdx = match.index;
     if (cutAfterIdx !== undefined && formulaIdx >= cutAfterIdx) {
-      result += '<span class="ellipsis-indicator">...</span>';
+      if (!skipEllipsis) result += '<span class="ellipsis-indicator">...</span>';
       return result;
     }
 
@@ -66,7 +67,7 @@ export function renderLatexToHTML(text, cutAfterIdx) {
   for (let i = 0; i < after.length; i++) {
     const idx = lastIdx + i;
     if (cutAfterIdx !== undefined && idx >= cutAfterIdx) {
-      result += '<span class="ellipsis-indicator">...</span>';
+      if (!skipEllipsis) result += '<span class="ellipsis-indicator">...</span>';
       return result;
     }
     const ch = after[i];

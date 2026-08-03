@@ -7,6 +7,7 @@ import CommentInput from '@/components/CommentInput';
 import LatexPreviewGroup from '@/components/LatexPreviewGroup';
 import ContinuationNode, { FocusContext } from '@/components/ContinuationNode';
 import ContinuationPositionHint from '@/components/ContinuationPositionHint';
+import FocusTruncatedContent from '@/components/FocusTruncatedContent';
 import { resolveContextMenuQuote } from '@/lib/quoteSelection';
 import { findContinuationById } from '@/lib/continuationUtils';
 import { normalizeLikedBy, applyLikeState, mapCommentTree } from '@/lib/likedBy';
@@ -289,10 +290,12 @@ export default function AnswerCard({
   const ans = currentAns;
   if (!ans) return null;
   const isAnswerCutPoint = cutTarget && cutTarget.nodeId === `answer-${ans.id}`;
+  const isAnswerFocusTruncated = focusPath.length > 0 && !(isAnswerCutPoint && showForm);
+  const answerFocusExitId = isAnswerFocusTruncated ? focusPath[0] : null;
   let answerCutAfterIdx;
   if (isAnswerCutPoint && cutTarget.start != null) {
     answerCutAfterIdx = cutTarget.start;
-  } else if (focusPath.length > 0) {
+  } else if (isAnswerFocusTruncated) {
     const firstContId = focusPath[0];
     const cont = ans.continuations?.find(c => c.id === firstContId);
     if (cont) answerCutAfterIdx = cont.start;
@@ -349,7 +352,14 @@ export default function AnswerCard({
           {ans.overallThought && (
             <div className="bg-gray-100 p-3 rounded mb-3" dangerouslySetInnerHTML={{ __html: `<strong>整体思路：</strong>${renderLatexToHTML(ans.overallThought)}` }} />
           )}
-          <div className="answer-text-container" data-node-id={`answer-${ans.id}`} style={{ whiteSpace: 'pre-wrap', marginBottom: 12 }} dangerouslySetInnerHTML={{ __html: renderLatexToHTML(ans.content, answerCutAfterIdx) }} />
+          <FocusTruncatedContent
+            content={ans.content}
+            cutAfterIdx={answerCutAfterIdx}
+            focusExitId={answerFocusExitId}
+            onExitFocus={removeFocus}
+            nodeId={`answer-${ans.id}`}
+            style={{ marginBottom: 12 }}
+          />
         </div>
         {touchMenu.visible && <div className="fixed z-50 bg-white border border-gray-300 rounded-md shadow-lg py-1 px-0" style={{ left: touchMenu.x, top: touchMenu.y, transform: 'translate(-50%, -100%)' }}>
           <button className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" onClick={handleTouchMenuQuote}>引用</button>

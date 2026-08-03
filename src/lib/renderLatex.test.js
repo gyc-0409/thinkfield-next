@@ -31,4 +31,10 @@ describe('renderLatexToHTML', () => {
     expect(html).toContain('ellipsis-indicator');
     expect(html).not.toContain('data-idx="3"');
   });
+
+  it('truncates without ellipsis when skipEllipsis is true', () => {
+    const html = renderLatexToHTML('abcdef', 3, true);
+    expect(html).not.toContain('ellipsis-indicator');
+    expect(html).not.toContain('data-idx="3"');
+  });
 });

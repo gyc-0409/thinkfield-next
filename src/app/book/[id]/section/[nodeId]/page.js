@@ -44,38 +44,34 @@ function SectionContent() {
     } catch { /* ignore */ }
   }, []);
 
-  const onResizeMove = useCallback((e) => {
-    if (!resizingRef.current) return;
-    const next = Math.min(560, Math.max(220, e.clientX));
-    setSidebarWidth(next);
-  }, []);
-
-  const onResizeEnd = useCallback(() => {
-    if (!resizingRef.current) return;
-    resizingRef.current = false;
-    document.body.style.cursor = '';
-    document.body.style.userSelect = '';
-    setSidebarWidth((w) => {
-      try { localStorage.setItem('thinkfield-section-sidebar-width', String(w)); } catch { /* ignore */ }
-      return w;
-    });
-    window.removeEventListener('mousemove', onResizeMove);
-    window.removeEventListener('mouseup', onResizeEnd);
-  }, [onResizeMove]);
-
   const onResizeStart = useCallback((e) => {
     e.preventDefault();
     resizingRef.current = true;
     document.body.style.cursor = 'col-resize';
     document.body.style.userSelect = 'none';
-    window.addEventListener('mousemove', onResizeMove);
-    window.addEventListener('mouseup', onResizeEnd);
-  }, [onResizeMove, onResizeEnd]);
 
-  useEffect(() => () => {
-    window.removeEventListener('mousemove', onResizeMove);
-    window.removeEventListener('mouseup', onResizeEnd);
-  }, [onResizeMove, onResizeEnd]);
+    const onMove = (ev) => {
+      if (!resizingRef.current) return;
+      setSidebarWidth(Math.min(560, Math.max(220, ev.clientX)));
+    };
+    const onUp = () => {
+      if (!resizingRef.current) return;
+      resizingRef.current = false;
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+      setSidebarWidth((w) => {
+        try {
+          localStorage.setItem('thinkfield-section-sidebar-width', String(w));
+        } catch { /* ignore */ }
+        return w;
+      });
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+    };
+
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+  }, []);
 
   useEffect(() => {
     document.documentElement.style.overflow = 'hidden';

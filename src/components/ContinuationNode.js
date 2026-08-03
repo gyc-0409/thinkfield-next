@@ -5,6 +5,7 @@ import { renderLatexToHTML } from '@/lib/renderLatex';
 import LatexPreviewGroup from '@/components/LatexPreviewGroup';
 import { resolveContextMenuQuote } from '@/lib/quoteSelection';
 import { normalizeLikedBy } from '@/lib/likedBy';
+import AuthorLink from '@/components/AuthorLink';
 
 export const FocusContext = createContext();
 export function useFocus() {
@@ -152,7 +153,10 @@ export default function ContinuationNode({
         style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 6, padding: isMobile ? 8 : 12, marginLeft: isMobile ? depth * 12 : depth * 20 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: isMobile ? 4 : 6 }}>
           <span style={{ cursor: 'pointer', fontWeight: 600, color: '#374151', fontSize: isMobile ? '0.875rem' : '1rem' }}
-            onClick={() => toggleFold(cont.id)}>{cont.author}的续写</span>
+            onClick={() => toggleFold(cont.id)}>
+            <AuthorLink author={cont.author} className="text-inherit font-semibold" stopPropagation />
+            的续写
+          </span>
           <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 4 : 8 }}>
             <button onTouchEnd={(e) => { e.preventDefault(); handleLike(e); }} onClick={handleLike}
               className={`${liked ? 'text-red-500' : 'text-gray-400 hover:text-red-500'}`} title="有价值">

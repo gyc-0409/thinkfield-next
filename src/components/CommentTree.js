@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { normalizeLikedBy } from '@/lib/likedBy';
+import AuthorLink from '@/components/AuthorLink';
 
 export default function CommentTree({ comments, depth = 0, questionId, thoughtId, onReply, onQuoteClick, onDelete, onCommentLike, currentUser, deleteComment }) {
   if (!comments || comments.length === 0) return null;
@@ -104,7 +105,9 @@ function CommentItem({ comment, depth, questionId, thoughtId, onReply, onQuoteCl
         ) : (
           <>
             <div className="flex items-center gap-2 text-sm text-gray-600 mb-1">
-              <span className="font-bold">{comment.author}</span>
+              <span className="font-bold">
+                <AuthorLink author={comment.author} className="font-bold text-inherit" />
+              </span>
               <button
                 onClick={() => onReply(comment.id, comment.author)}
                 className="text-xs text-gray-400 hover:text-gray-700 opacity-0 group-hover:opacity-100 transition-opacity"

@@ -7,6 +7,7 @@ import LoadingDots from '@/components/LoadingDots';
 import { renderLatexToHTML } from '@/lib/renderLatex';
 import { useAuth } from '@/context/AuthContext';
 import { applyLikeState, mapCommentTree } from '@/lib/likedBy';
+import AuthorLink from '@/components/AuthorLink';
 
 export default function QuestionDetail({ questionId, bookType }) {
   const { user } = useAuth();
@@ -109,7 +110,9 @@ export default function QuestionDetail({ questionId, bookType }) {
         />
       )}
 
-      <p className="text-sm text-gray-500 mb-4 md:mb-6">{question.author}</p>
+      <p className="text-sm text-gray-500 mb-4 md:mb-6">
+        <AuthorLink author={question.author} className="text-gray-500" />
+      </p>
 
       <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 md:p-6">
         <ThoughtCard

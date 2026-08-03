@@ -1,14 +1,17 @@
 'use client';
 import { useState, useEffect, useCallback, useRef, Suspense } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import QuestionDetail from '@/components/QuestionDetail';
 import BookTree from '@/components/BookTree';
 import LatexPreviewGroup from '@/components/LatexPreviewGroup';
 import { renderLatexToHTML } from '@/lib/renderLatex';
+import AuthorLink from '@/components/AuthorLink';
 
 function SectionContent() {
   const { id: bookId, nodeId } = useParams();
+  const searchParams = useSearchParams();
+  const deepQuestionId = searchParams.get('q');
   const router = useRouter();
   const { user, requireLogin } = useAuth();
   const [questions, setQuestions] = useState([]);
@@ -17,8 +20,8 @@ function SectionContent() {
   const [currentNode, setCurrentNode] = useState(null);
   const [loading, setLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [selectedQuestionId, setSelectedQuestionId] = useState(null);
-  const [showNewDiscussion, setShowNewDiscussion] = useState(true);
+  const [selectedQuestionId, setSelectedQuestionId] = useState(deepQuestionId || null);
+  const [showNewDiscussion, setShowNewDiscussion] = useState(!deepQuestionId);
   const [discussionType, setDiscussionType] = useState('question');
   const [showChapterPanel, setShowChapterPanel] = useState(false);
 
@@ -95,6 +98,12 @@ function SectionContent() {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  useEffect(() => {
+    if (!deepQuestionId) return;
+    setSelectedQuestionId(deepQuestionId);
+    setShowNewDiscussion(false);
+  }, [deepQuestionId]);
 
   const findNodeAndPath = (tree, targetId, path = []) => {
     for (const node of tree) {
@@ -338,7 +347,10 @@ function SectionContent() {
                           </button>
                         )}
                       </div>
-                      <div className="text-xs text-gray-400 mt-0.5">{q.author} · {q.replies} 回复{q.page_range ? ` · 页码 ${q.page_range}` : ''}</div>
+                      <div className="text-xs text-gray-400 mt-0.5">
+                        <AuthorLink author={q.author} className="text-gray-400" />
+                        {' '}· {q.replies} 回复{q.page_range ? ` · 页码 ${q.page_range}` : ''}
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -429,7 +441,10 @@ function SectionContent() {
                         </button>
                       )}
                     </div>
-                    <div className="text-xs text-gray-400 mt-0.5">{q.author} · {q.replies} 回复{q.page_range ? ` · 页码 ${q.page_range}` : ''}</div>
+                    <div className="text-xs text-gray-400 mt-0.5">
+                      <AuthorLink author={q.author} className="text-gray-400" />
+                      {' '}· {q.replies} 回复{q.page_range ? ` · 页码 ${q.page_range}` : ''}
+                    </div>
                   </div>
                 ))}
               </div>

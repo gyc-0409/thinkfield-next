@@ -6,6 +6,7 @@ import CommentInput from '@/components/CommentInput';
 import LatexPreviewGroup from '@/components/LatexPreviewGroup';
 import { renderLatexToHTML } from '@/lib/renderLatex';
 import { normalizeLikedBy } from '@/lib/likedBy';
+import AuthorLink from '@/components/AuthorLink';
 
 export default function ThoughtCard({
   thoughts,
@@ -241,7 +242,10 @@ export default function ThoughtCard({
   return (
     <div>
       <div className="flex justify-between items-center mb-3 gap-2">
-        <h3 className={`font-bold min-w-0 truncate ${isMobile ? 'text-base' : 'text-lg'}`}>{thought.author}的思考区</h3>
+        <h3 className={`font-bold min-w-0 truncate ${isMobile ? 'text-base' : 'text-lg'}`}>
+          <AuthorLink author={thought.author} className="text-inherit font-bold" />
+          的思考区
+        </h3>
         <div className="flex items-center gap-2 flex-shrink-0">
           <button
             type="button"

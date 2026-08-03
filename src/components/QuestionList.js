@@ -1,7 +1,8 @@
 'use client';
 import { useRouter } from 'next/navigation';
+import AuthorLink from '@/components/AuthorLink';
 
-export default function QuestionList({ questions, bookId }) {
+export default function QuestionList({ questions }) {
   const router = useRouter();
 
   if (!questions.length) {
@@ -21,7 +22,8 @@ export default function QuestionList({ questions, bookId }) {
               {q.location && <div className="text-xs text-gray-400 mb-1">位置：{q.location}</div>}
               <div className="font-bold text-gray-800">{q.title}</div>
               <div className="text-sm text-gray-500 mt-1">
-                {q.author} · {q.replies} 条回复
+                <AuthorLink author={q.author} className="text-gray-500" />
+                {' '}· {q.replies} 条回复
               </div>
             </div>
           </div>

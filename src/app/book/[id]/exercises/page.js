@@ -29,6 +29,13 @@ function ExercisesContent() {
   const [tocGlow, setTocGlow] = useState(false);
   const [sidebarWidth, setSidebarWidth] = useState(288);
   const resizingRef = useRef(false);
+  const deepExerciseId = searchParams.get('exerciseId');
+
+  useEffect(() => {
+    if (!deepExerciseId) return;
+    setSelectedExerciseId(deepExerciseId);
+    setShowAddExercise(false);
+  }, [deepExerciseId]);
 
   useEffect(() => {
     try {

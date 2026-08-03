@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import UserBooksGrid from '@/components/UserBooksGrid';
 import AuthModal from '@/components/AuthModal';
@@ -59,7 +60,9 @@ export default function HomeClient({ initialHotBooks = [], hotBooksError: initia
                 管理后台
               </button>
             )}
-            <span className="text-sm text-gray-600">{user}</span>
+            <Link href="/me" className="text-sm text-gray-600 hover:text-gray-900 hover:underline underline-offset-2 transition-colors">
+              {user}
+            </Link>
             <button onClick={logout} className="text-sm text-gray-400 hover:text-gray-600">退出</button>
           </div>
         ) : (

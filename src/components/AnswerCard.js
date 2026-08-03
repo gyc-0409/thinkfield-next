@@ -8,6 +8,7 @@ import LatexPreviewGroup from '@/components/LatexPreviewGroup';
 import ContinuationNode, { FocusContext } from '@/components/ContinuationNode';
 import { resolveContextMenuQuote } from '@/lib/quoteSelection';
 import { normalizeLikedBy, applyLikeState, mapCommentTree } from '@/lib/likedBy';
+import AuthorLink from '@/components/AuthorLink';
 
 export default function AnswerCard({
   answers,
@@ -291,7 +292,10 @@ export default function AnswerCard({
       <div ref={answerContainerRef} onClick={handleContainerClick} data-node-id={`answer-${ans.id}`}>
         <div className="flex justify-between items-center mb-3">
           <div className="flex items-center gap-3">
-            <h3 className="font-bold text-lg">{ans.author} 的解答</h3>
+            <h3 className="font-bold text-lg">
+              <AuthorLink author={ans.author} className="text-inherit font-bold" />
+              {' '}的解答
+            </h3>
             <button
               onTouchEnd={(e) => { e.preventDefault(); handleAnswerLike(); }}
               onClick={handleAnswerLike}

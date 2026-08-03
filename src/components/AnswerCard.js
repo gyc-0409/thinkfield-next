@@ -6,7 +6,9 @@ import CommentTree from '@/components/CommentTree';
 import CommentInput from '@/components/CommentInput';
 import LatexPreviewGroup from '@/components/LatexPreviewGroup';
 import ContinuationNode, { FocusContext } from '@/components/ContinuationNode';
+import ContinuationPositionHint from '@/components/ContinuationPositionHint';
 import { resolveContextMenuQuote } from '@/lib/quoteSelection';
+import { findContinuationById } from '@/lib/continuationUtils';
 import { normalizeLikedBy, applyLikeState, mapCommentTree } from '@/lib/likedBy';
 import AuthorLink from '@/components/AuthorLink';
 
@@ -190,8 +192,15 @@ export default function AnswerCard({
     if (!nodeContainer) return;
     const nodeId = nodeContainer.getAttribute('data-node-id');
     let parentContinuationId = null;
-    if (nodeId.startsWith('cont-')) parentContinuationId = nodeId.replace('cont-', '');
-    setCutTarget({ nodeId, start: idx, parentContinuationId: parentContinuationId || null });
+    let sourceContent = '';
+    if (nodeId.startsWith('cont-')) {
+      parentContinuationId = nodeId.replace('cont-', '');
+      const cont = findContinuationById(answers[currentPage]?.continuations, parentContinuationId);
+      sourceContent = cont?.content || '';
+    } else if (nodeId.startsWith('answer-')) {
+      sourceContent = answers[currentPage]?.content || '';
+    }
+    setCutTarget({ nodeId, start: idx, parentContinuationId: parentContinuationId || null, sourceContent });
     setCutMode(false); setShowForm(true); setFormMotivation(''); setFormContent('');
   };
   const handleSubmitForm = async () => {
@@ -281,7 +290,9 @@ export default function AnswerCard({
   if (!ans) return null;
   const isAnswerCutPoint = cutTarget && cutTarget.nodeId === `answer-${ans.id}`;
   let answerCutAfterIdx;
-  if (focusPath.length > 0) {
+  if (isAnswerCutPoint && cutTarget.start != null) {
+    answerCutAfterIdx = cutTarget.start;
+  } else if (focusPath.length > 0) {
     const firstContId = focusPath[0];
     const cont = ans.continuations?.find(c => c.id === firstContId);
     if (cont) answerCutAfterIdx = cont.start;
@@ -346,6 +357,7 @@ export default function AnswerCard({
         </div>}
         {isAnswerCutPoint && showForm && (
           <div style={{ marginTop: 8, padding: 12, border: '1px solid #ddd', borderRadius: 6, background: '#fff' }} onClick={(e) => e.stopPropagation()}>
+            <ContinuationPositionHint content={cutTarget.sourceContent} start={cutTarget.start} />
             <div className="text-sm font-medium mb-2">续写动机 *</div>
             <LatexPreviewGroup value={formMotivation} onChange={(e) => setFormMotivation(e.target.value)} rows={2} placeholder="为什么要续写这一步？" showPreview={showPreview} />
             <div className="text-sm font-medium mb-2">续写内容 *</div>
@@ -356,7 +368,7 @@ export default function AnswerCard({
         {ans.continuations && ans.continuations.length > 0 && (
           <ul style={{ paddingLeft: 0, marginTop: 12 }}>
             {ans.continuations.map((cont) => (
-              <ContinuationNode key={cont.id} cont={cont} depth={0} ancestorIds={[]} foldState={foldState} toggleFold={toggleFold}
+              <ContinuationNode key={cont.id} cont={cont} depth={0} ancestorIds={[]} parentContent={ans.content} foldState={foldState} toggleFold={toggleFold}
                 cutTarget={cutTarget} showForm={showForm} formMotivation={formMotivation} formContent={formContent}
                 onFormMotivationChange={setFormMotivation} onFormContentChange={setFormContent}
                 onSubmitForm={handleSubmitForm} onCancelForm={handleCancelForm} exerciseId={exerciseId} answerId={ans.id}

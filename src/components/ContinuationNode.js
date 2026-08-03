@@ -3,6 +3,7 @@ import { useState, useRef, useEffect, createContext, useContext } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { renderLatexToHTML } from '@/lib/renderLatex';
 import LatexPreviewGroup from '@/components/LatexPreviewGroup';
+import ContinuationPositionHint from '@/components/ContinuationPositionHint';
 import { resolveContextMenuQuote } from '@/lib/quoteSelection';
 import { normalizeLikedBy } from '@/lib/likedBy';
 import AuthorLink from '@/components/AuthorLink';
@@ -15,17 +16,16 @@ export function useFocus() {
 }
 
 export default function ContinuationNode({
-  cont, depth, ancestorIds, foldState, toggleFold,
+  cont, depth, ancestorIds, parentContent, foldState, toggleFold,
   cutTarget, showForm, formMotivation, formContent,
   onFormMotivationChange, onFormContentChange,
   onSubmitForm, onCancelForm, exerciseId,
   currentUser, bookType, onQuoteText, onContinuationLike,
 }) {
   const nodeId = `cont-${cont.id}`;
-  const { focusPath, addFocus, removeFocus } = useFocus();
+  const { focusPath, addFocus } = useFocus();
   const isFocused = focusPath.includes(cont.id);
   const { requireLogin } = useAuth();
-  const [hover, setHover] = useState(false);
   const containerRef = useRef(null);
   const formRef = useRef(null);
   const [isMobile, setIsMobile] = useState(false);
@@ -54,8 +54,11 @@ export default function ContinuationNode({
   }, [showForm]);
 
   const isVisible = focusPath.length === 0 || ancestorIds.some(id => focusPath.includes(id)) || isFocused;
+  const isCutPoint = cutTarget?.nodeId === nodeId && cutTarget?.start != null;
   let cutAfterIdx;
-  if (isFocused) {
+  if (isCutPoint && showForm) {
+    cutAfterIdx = cutTarget.start;
+  } else if (isFocused) {
     const idxInPath = focusPath.indexOf(cont.id);
     if (idxInPath !== -1 && idxInPath < focusPath.length - 1) {
       const nextFocusedId = focusPath[idxInPath + 1];
@@ -64,12 +67,10 @@ export default function ContinuationNode({
     }
   }
 
-  const handleMouseEnter = () => setHover(true);
-  const handleMouseLeave = (e) => {
-    if (containerRef.current && e.relatedTarget && containerRef.current.contains(e.relatedTarget)) return;
-    setHover(false);
+  const handleFocusFromPosition = (e) => {
+    e.stopPropagation();
+    addFocus(cont.id, ancestorIds);
   };
-  const handleFocusToggle = (e) => { e.stopPropagation(); isFocused ? removeFocus(cont.id) : addFocus(cont.id, ancestorIds); };
   const handleLike = async (e) => {
     e.stopPropagation();
     if (!requireLogin()) return;
@@ -144,25 +145,32 @@ export default function ContinuationNode({
   };
 
   if (!isVisible) return null;
-  const showFocusBtn = hover || isFocused;
   const showPreview = bookType !== 'literature';
 
   return (
     <li style={{ marginBottom: isMobile ? 8 : 12 }}>
-      <div ref={containerRef} data-node-id={nodeId} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}
+      <div ref={containerRef} data-node-id={nodeId}
         style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 6, padding: isMobile ? 8 : 12, marginLeft: isMobile ? depth * 12 : depth * 20 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: isMobile ? 4 : 6 }}>
-          <span style={{ cursor: 'pointer', fontWeight: 600, color: '#374151', fontSize: isMobile ? '0.875rem' : '1rem' }}
-            onClick={() => toggleFold(cont.id)}>
-            <AuthorLink author={cont.author} className="text-inherit font-semibold" stopPropagation />
-            的续写
-          </span>
-          <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 4 : 8 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: isMobile ? 4 : 6, gap: 8, flexWrap: 'wrap' }}>
+          <div className="flex items-center gap-2 flex-wrap min-w-0">
+            <span style={{ cursor: 'pointer', fontWeight: 600, color: '#374151', fontSize: isMobile ? '0.875rem' : '1rem' }}
+              onClick={() => toggleFold(cont.id)}>
+              <AuthorLink author={cont.author} className="text-inherit font-semibold" stopPropagation />
+              的续写
+            </span>
+            {cont.start != null && parentContent && (
+              <ContinuationPositionHint
+                content={parentContent}
+                start={cont.start}
+                onClick={handleFocusFromPosition}
+              />
+            )}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 4 : 8, flexShrink: 0 }}>
             <button onTouchEnd={(e) => { e.preventDefault(); handleLike(e); }} onClick={handleLike}
               className={`${liked ? 'text-red-500' : 'text-gray-400 hover:text-red-500'}`} title="有价值">
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M2 10.5a1.5 1.5 0 113 0v6a1.5 1.5 0 01-3 0v-6zM6 10.333v5.43a2 2 0 001.106 1.79l.05.025A4 4 0 008.943 18h5.416a2 2 0 001.962-1.608l1.2-6A2 2 0 0015.56 8H12V4a2 2 0 00-2-2 1 1 0 00-1 1v.667a4 4 0 01-.8 2.4L6.8 7.933a4 4 0 00-.8 2.4z" /></svg>
             </button>
-            {showFocusBtn && <button onClick={handleFocusToggle} className={`text-xs px-2.5 py-1 rounded transition-colors ${isFocused ? 'bg-gray-700 text-white font-semibold' : 'bg-gray-200 hover:bg-gray-300 text-gray-700'}`}>{isFocused ? '退出聚焦' : '聚焦'}</button>}
           </div>
         </div>
         {!foldState[cont.id] && (
@@ -183,6 +191,7 @@ export default function ContinuationNode({
             )}
             {cutTarget?.nodeId === nodeId && showForm && (
               <div ref={formRef} style={{ marginLeft: isMobile ? 4 : 8, marginTop: 8, padding: isMobile ? 8 : 12, border: '1px solid #ddd', borderRadius: 6, background: '#fff' }} onClick={(e) => e.stopPropagation()}>
+                <ContinuationPositionHint content={cutTarget.sourceContent} start={cutTarget.start} />
                 <div className="text-sm font-medium mb-2">续写动机 *</div>
                 <LatexPreviewGroup value={formMotivation} onChange={(e) => onFormMotivationChange(e.target.value)} rows={2} placeholder="为什么要续写这一步？" showPreview={showPreview} />
                 <div className="text-sm font-medium mb-2">续写内容 *</div>
@@ -193,7 +202,7 @@ export default function ContinuationNode({
             {cont.continuations && cont.continuations.length > 0 && (
               <ul style={{ paddingLeft: 0, marginTop: 12 }}>
                 {cont.continuations.map((sub) => (
-                  <ContinuationNode key={sub.id} cont={sub} depth={depth + 1} ancestorIds={[...ancestorIds, cont.id]} foldState={foldState} toggleFold={toggleFold}
+                  <ContinuationNode key={sub.id} cont={sub} depth={depth + 1} ancestorIds={[...ancestorIds, cont.id]} parentContent={cont.content} foldState={foldState} toggleFold={toggleFold}
                     cutTarget={cutTarget} showForm={showForm} formMotivation={formMotivation} formContent={formContent}
                     onFormMotivationChange={onFormMotivationChange} onFormContentChange={onFormContentChange}
                     onSubmitForm={onSubmitForm} onCancelForm={onCancelForm} exerciseId={exerciseId}

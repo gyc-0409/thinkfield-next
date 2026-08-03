@@ -39,10 +39,10 @@ function AnswerLink({ item, bookId, nodeId }) {
   );
 }
 
-function TreeNode({ node, bookId, depth }) {
+function TreeNode({ node, bookId, depth, isExpanded, onToggle }) {
   const hasChildren = Array.isArray(node.children) && node.children.length > 0;
   const isSection = !hasChildren;
-  const [expanded, setExpanded] = useState(depth < 2);
+  const expanded = isExpanded(node.id);
 
   const discussions = node.discussions || [];
   const answers = node.answers || [];
@@ -54,7 +54,7 @@ function TreeNode({ node, bookId, depth }) {
     <div>
       <button
         type="button"
-        onClick={() => setExpanded((e) => !e)}
+        onClick={() => onToggle(node.id)}
         className="flex w-full items-center gap-2 py-2 px-2 rounded text-left hover:bg-gray-50 transition-colors"
         style={{ paddingLeft: depth * 16 + 8 }}
       >
@@ -95,7 +95,14 @@ function TreeNode({ node, bookId, depth }) {
       {expanded && hasChildren && (
         <div>
           {node.children.map((child) => (
-            <TreeNode key={child.id} node={child} bookId={bookId} depth={depth + 1} />
+            <TreeNode
+              key={child.id}
+              node={child}
+              bookId={bookId}
+              depth={depth + 1}
+              isExpanded={isExpanded}
+              onToggle={onToggle}
+            />
           ))}
         </div>
       )}
@@ -104,6 +111,23 @@ function TreeNode({ node, bookId, depth }) {
 }
 
 export default function UserBookTree({ books, isSelf }) {
+  const [activeBookId, setActiveBookId] = useState(null);
+  const [expandedIds, setExpandedIds] = useState([]);
+
+  const isExpanded = (bookId, nodeId) =>
+    activeBookId === bookId && expandedIds.includes(nodeId);
+
+  const toggleNode = (bookId, nodeId) => {
+    if (bookId !== activeBookId) {
+      setActiveBookId(bookId);
+      setExpandedIds([nodeId]);
+      return;
+    }
+    setExpandedIds((prev) =>
+      prev.includes(nodeId) ? prev.filter((id) => id !== nodeId) : [...prev, nodeId]
+    );
+  };
+
   if (!books || books.length === 0) {
     return (
       <p className="text-sm text-gray-400 py-8 text-center">
@@ -124,7 +148,14 @@ export default function UserBookTree({ books, isSelf }) {
               <p className="text-sm text-gray-400 px-4 py-3">暂无章节数据</p>
             ) : (
               book.tree.map((node) => (
-                <TreeNode key={node.id} node={node} bookId={book.id} depth={0} />
+                <TreeNode
+                  key={node.id}
+                  node={node}
+                  bookId={book.id}
+                  depth={0}
+                  isExpanded={(nodeId) => isExpanded(book.id, nodeId)}
+                  onToggle={(nodeId) => toggleNode(book.id, nodeId)}
+                />
               ))
             )}
           </div>

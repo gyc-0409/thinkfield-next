@@ -88,20 +88,8 @@ export default function HomeClient({ initialHotBooks = [], hotBooksError: initia
           </div>
         </form>
 
-        <div className="w-full max-w-xl mb-2 text-sm sm:text-base">
-          <span className="text-sm text-gray-400 mr-2 sm:mr-3">最近热搜</span>
-          <div className="inline-flex flex-wrap gap-x-4 gap-y-1">
-            {hotBooks.slice(0, 3).map((book, index) => (
-              <span key={book.id} onClick={() => router.push(`/book/${book.id}`)} className={`inline-block text-sm cursor-pointer hover:text-gray-600 transition-colors ${index < 3 ? 'text-gray-500' : 'text-gray-300'}`}>
-                {book.title}
-              </span>
-            ))}
-            {hotBooksError ? (
-              <span className="text-sm text-red-500">数据加载失败，请稍后重试</span>
-            ) : hotBooks.length === 0 ? (
-              <span className="text-sm text-gray-300">暂无数据</span>
-            ) : null}
-          </div>
+        <div className="w-full max-w-xl mb-2 text-sm sm:text-base text-gray-500">
+          点击下方书籍卡片进入讨论
         </div>
 
         {user && (
@@ -111,7 +99,11 @@ export default function HomeClient({ initialHotBooks = [], hotBooksError: initia
           </div>
         )}
 
-        {hotBooks.length > 0 && (
+        {hotBooksError ? (
+          <div className="w-full max-w-4xl mt-10 sm:mt-16">
+            <p className="text-sm text-red-500">书籍加载失败，请稍后重试</p>
+          </div>
+        ) : hotBooks.length > 0 ? (
           <div className="w-full max-w-4xl mt-10 sm:mt-16">
             <h2 className="text-base sm:text-lg font-medium text-gray-800 mb-4 sm:mb-5">讨论榜 TOP5</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
@@ -126,6 +118,10 @@ export default function HomeClient({ initialHotBooks = [], hotBooksError: initia
                 </div>
               ))}
             </div>
+          </div>
+        ) : (
+          <div className="w-full max-w-4xl mt-10 sm:mt-16">
+            <p className="text-sm text-gray-400">暂无书籍，可从分类进入浏览</p>
           </div>
         )}
 

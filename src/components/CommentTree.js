@@ -26,8 +26,20 @@ export default function CommentTree({ comments, depth = 0, questionId, thoughtId
 
 function CommentItem({ comment, depth, questionId, thoughtId, onReply, onQuoteClick, onDelete, currentUser, deleteComment }) {
   const isDeleted = comment.author === '[已删除]';
+  const likedByList = (() => {
+    if (Array.isArray(comment.liked_by)) return comment.liked_by;
+    if (typeof comment.liked_by === 'string') {
+      try {
+        const parsed = JSON.parse(comment.liked_by);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch {
+        return [];
+      }
+    }
+    return [];
+  })();
   const [likes, setLikes] = useState(comment.likes || 0);
-  const [liked, setLiked] = useState(isDeleted ? false : (comment.liked_by?.includes(currentUser) || false));
+  const [liked, setLiked] = useState(isDeleted ? false : likedByList.includes(currentUser));
   const [loading, setLoading] = useState(false);
   const [deleting, setDeleting] = useState(false);
 

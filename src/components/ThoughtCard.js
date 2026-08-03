@@ -43,16 +43,28 @@ export default function ThoughtCard({
     return () => window.removeEventListener('resize', check);
   }, []);
 
-  // 点赞状态
-  const initialLiked = thought ? (thought.liked_by?.includes(currentUser) || false) : false;
-  const [liked, setLiked] = useState(initialLiked);
+  // 点赞状态（liked_by 可能是数组或 JSON 字符串）
+  const getLikedBy = (t) => {
+    if (!t?.liked_by) return [];
+    if (Array.isArray(t.liked_by)) return t.liked_by;
+    if (typeof t.liked_by === 'string') {
+      try {
+        const parsed = JSON.parse(t.liked_by);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch {
+        return [];
+      }
+    }
+    return [];
+  };
+  const [liked, setLiked] = useState(() => getLikedBy(thought).includes(currentUser));
   const [likes, setLikes] = useState(thought?.likes || 0);
   useEffect(() => {
     if (thought) {
-      setLiked(thought.liked_by?.includes(currentUser) || false);
+      setLiked(getLikedBy(thought).includes(currentUser));
       setLikes(thought.likes || 0);
     }
-  }, [thought, currentUser]);
+  }, [thought, currentUser, currentPage]);
 
   // 点击引用滚动高亮
   const handleQuoteClick = useCallback((start, end) => {
@@ -236,14 +248,16 @@ export default function ThoughtCard({
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-3">
-        <h3 className={`font-bold ${isMobile ? 'text-base' : 'text-lg'}`}>{thought.author}的思考区</h3>
-        <div className="flex items-center gap-2">
+      <div className="flex justify-between items-center mb-3 gap-2">
+        <h3 className={`font-bold min-w-0 truncate ${isMobile ? 'text-base' : 'text-lg'}`}>{thought.author}的思考区</h3>
+        <div className="flex items-center gap-2 flex-shrink-0">
           <button
+            type="button"
             onTouchEnd={(e) => { e.preventDefault(); handleLike(); }}
             onClick={handleLike}
-            className={`${liked ? 'text-red-500' : 'text-gray-400 hover:text-red-500'}`}
+            className={`inline-flex items-center justify-center min-w-[36px] min-h-[36px] ${liked ? 'text-red-500' : 'text-gray-400 hover:text-red-500'}`}
             title="有价值"
+            aria-label="有价值"
           >
             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
               <path d="M2 10.5a1.5 1.5 0 113 0v6a1.5 1.5 0 01-3 0v-6zM6 10.333v5.43a2 2 0 001.106 1.79l.05.025A4 4 0 008.943 18h5.416a2 2 0 001.962-1.608l1.2-6A2 2 0 0015.56 8H12V4a2 2 0 00-2-2 1 1 0 00-1 1v.667a4 4 0 01-.8 2.4L6.8 7.933a4 4 0 00-.8 2.4z" />

@@ -135,7 +135,7 @@ export default function AuthModal({ onClose }) {
           value={password}
           onChange={e => setPassword(e.target.value)}
           type="password"
-          placeholder="密码（至少8位）"
+          placeholder={isRegister ? '密码（至少8位）' : '密码'}
           className="w-full border border-gray-200 p-2.5 rounded-md mb-3 text-sm focus:outline-none focus:border-gray-400 placeholder:text-gray-400"
           autoComplete="current-password"
         />

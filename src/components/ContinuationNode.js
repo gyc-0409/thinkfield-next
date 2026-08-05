@@ -17,7 +17,7 @@ export function useFocus() {
 }
 
 export default function ContinuationNode({
-  cont, depth, ancestorIds, parentContent, foldState, toggleFold,
+  cont, depth, ancestorIds, parentContent,
   cutTarget, showForm, formMotivation, formContent,
   onFormMotivationChange, onFormContentChange,
   onSubmitForm, onCancelForm, exerciseId,
@@ -158,8 +158,7 @@ export default function ContinuationNode({
         style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 6, padding: isMobile ? 8 : 12, marginLeft: isMobile ? depth * 12 : depth * 20 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: isMobile ? 4 : 6, gap: 8, flexWrap: 'wrap' }}>
           <div className="flex items-center gap-2 flex-wrap min-w-0">
-            <span style={{ cursor: 'pointer', fontWeight: 600, color: '#374151', fontSize: isMobile ? '0.875rem' : '1rem' }}
-              onClick={() => toggleFold(cont.id)}>
+            <span style={{ fontWeight: 600, color: '#374151', fontSize: isMobile ? '0.875rem' : '1rem' }}>
               <AuthorLink author={cont.author} className="text-inherit font-semibold" stopPropagation />
               的续写
             </span>
@@ -178,52 +177,48 @@ export default function ContinuationNode({
             </button>
           </div>
         </div>
-        {!foldState[cont.id] && (
-          <>
-            {cont.motivation && (
-              <div style={{ background: '#f3f4f6', padding: isMobile ? '6px 10px' : '8px 12px', borderRadius: 6, marginBottom: 8, fontSize: isMobile ? 13 : 14 }}
-                dangerouslySetInnerHTML={{ __html: `<span style="font-weight:600;color:#374151">动机：</span>${renderLatexToHTML(cont.motivation)}` }} />
-            )}
-            <FocusTruncatedContent
-              content={cont.content}
-              cutAfterIdx={cutAfterIdx}
-              focusExitId={focusExitId}
-              onExitFocus={removeFocus}
-              nodeId={nodeId}
-              style={{ marginLeft: isMobile ? 4 : 8, marginBottom: 8, fontSize: isMobile ? '0.875rem' : 'inherit', touchAction: 'manipulation' }}
-              onTouchStart={handleTouchStart}
-              onTouchMove={handleTouchMove}
-              onTouchEnd={handleTouchEnd}
-              onContextMenu={handleContextMenu}
-            />
-            {touchMenu.visible && (
-              <div className="fixed z-50 bg-white border border-gray-300 rounded-md shadow-lg py-1 px-0" style={{ left: touchMenu.x, top: touchMenu.y, transform: 'translate(-50%, -100%)' }}>
-                <button className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" onClick={handleTouchMenuQuote}>引用</button>
-                <button className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" onClick={closeTouchMenu}>取消</button>
-              </div>
-            )}
-            {cutTarget?.nodeId === nodeId && showForm && (
-              <div ref={formRef} style={{ marginLeft: isMobile ? 4 : 8, marginTop: 8, padding: isMobile ? 8 : 12, border: '1px solid #ddd', borderRadius: 6, background: '#fff' }} onClick={(e) => e.stopPropagation()}>
-                <ContinuationPositionHint content={cutTarget.sourceContent} start={cutTarget.start} />
-                <div className="text-sm font-medium mb-2">续写动机 *</div>
-                <LatexPreviewGroup value={formMotivation} onChange={(e) => onFormMotivationChange(e.target.value)} rows={2} placeholder="为什么要续写这一步？" showPreview={showPreview} />
-                <div className="text-sm font-medium mb-2">续写内容 *</div>
-                <LatexPreviewGroup value={formContent} onChange={(e) => onFormContentChange(e.target.value)} rows={4} placeholder="写下你的续写/改写步骤..." showPreview={showPreview} />
-                <div className="flex gap-2 mt-2"><button onClick={onSubmitForm} className="bg-gray-800 text-white px-4 py-2 rounded text-sm hover:bg-gray-900">提交续写</button><button onClick={onCancelForm} className="bg-gray-200 px-4 py-2 rounded text-sm hover:bg-gray-300">取消</button></div>
-              </div>
-            )}
-            {cont.continuations && cont.continuations.length > 0 && (
-              <ul style={{ paddingLeft: 0, marginTop: 12 }}>
-                {cont.continuations.map((sub) => (
-                  <ContinuationNode key={sub.id} cont={sub} depth={depth + 1} ancestorIds={[...ancestorIds, cont.id]} parentContent={cont.content} foldState={foldState} toggleFold={toggleFold}
-                    cutTarget={cutTarget} showForm={showForm} formMotivation={formMotivation} formContent={formContent}
-                    onFormMotivationChange={onFormMotivationChange} onFormContentChange={onFormContentChange}
-                    onSubmitForm={onSubmitForm} onCancelForm={onCancelForm} exerciseId={exerciseId}
-                    currentUser={currentUser} bookType={bookType} onQuoteText={onQuoteText} onContinuationLike={onContinuationLike} />
-                ))}
-              </ul>
-            )}
-          </>
+        {cont.motivation && (
+          <div style={{ background: '#f3f4f6', padding: isMobile ? '6px 10px' : '8px 12px', borderRadius: 6, marginBottom: 8, fontSize: isMobile ? 13 : 14 }}
+            dangerouslySetInnerHTML={{ __html: `<span style="font-weight:600;color:#374151">动机：</span>${renderLatexToHTML(cont.motivation)}` }} />
+        )}
+        <FocusTruncatedContent
+          content={cont.content}
+          cutAfterIdx={cutAfterIdx}
+          focusExitId={focusExitId}
+          onExitFocus={removeFocus}
+          nodeId={nodeId}
+          style={{ marginLeft: isMobile ? 4 : 8, marginBottom: 8, fontSize: isMobile ? '0.875rem' : 'inherit', touchAction: 'manipulation' }}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          onContextMenu={handleContextMenu}
+        />
+        {touchMenu.visible && (
+          <div className="fixed z-50 bg-white border border-gray-300 rounded-md shadow-lg py-1 px-0" style={{ left: touchMenu.x, top: touchMenu.y, transform: 'translate(-50%, -100%)' }}>
+            <button className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" onClick={handleTouchMenuQuote}>引用</button>
+            <button className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" onClick={closeTouchMenu}>取消</button>
+          </div>
+        )}
+        {cutTarget?.nodeId === nodeId && showForm && (
+          <div ref={formRef} style={{ marginLeft: isMobile ? 4 : 8, marginTop: 8, padding: isMobile ? 8 : 12, border: '1px solid #ddd', borderRadius: 6, background: '#fff' }} onClick={(e) => e.stopPropagation()}>
+            <ContinuationPositionHint content={cutTarget.sourceContent} start={cutTarget.start} />
+            <div className="text-sm font-medium mb-2">续写动机 *</div>
+            <LatexPreviewGroup value={formMotivation} onChange={(e) => onFormMotivationChange(e.target.value)} rows={2} placeholder="为什么要续写这一步？" showPreview={showPreview} />
+            <div className="text-sm font-medium mb-2">续写内容 *</div>
+            <LatexPreviewGroup value={formContent} onChange={(e) => onFormContentChange(e.target.value)} rows={4} placeholder="写下你的续写/改写步骤..." showPreview={showPreview} />
+            <div className="flex gap-2 mt-2"><button onClick={onSubmitForm} className="bg-gray-800 text-white px-4 py-2 rounded text-sm hover:bg-gray-900">提交续写</button><button onClick={onCancelForm} className="bg-gray-200 px-4 py-2 rounded text-sm hover:bg-gray-300">取消</button></div>
+          </div>
+        )}
+        {cont.continuations && cont.continuations.length > 0 && (
+          <ul style={{ paddingLeft: 0, marginTop: 12 }}>
+            {cont.continuations.map((sub) => (
+              <ContinuationNode key={sub.id} cont={sub} depth={depth + 1} ancestorIds={[...ancestorIds, cont.id]} parentContent={cont.content}
+                cutTarget={cutTarget} showForm={showForm} formMotivation={formMotivation} formContent={formContent}
+                onFormMotivationChange={onFormMotivationChange} onFormContentChange={onFormContentChange}
+                onSubmitForm={onSubmitForm} onCancelForm={onCancelForm} exerciseId={exerciseId}
+                currentUser={currentUser} bookType={bookType} onQuoteText={onQuoteText} onContinuationLike={onContinuationLike} />
+            ))}
+          </ul>
         )}
       </div>
     </li>

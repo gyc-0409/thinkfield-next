@@ -35,6 +35,7 @@ export default function ThoughtCard({
   const [newThought, setNewThought] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const contentRef = useRef(null);
+  const commentInputRef = useRef(null);
 
   const thought = !isLastPage ? thoughts[currentPage] : null;
 
@@ -55,6 +56,12 @@ export default function ThoughtCard({
       setLikes(thought.likes || 0);
     }
   }, [thought, currentUser, currentPage]);
+
+  useEffect(() => {
+    if ((quoteText || replyParentId) && commentInputRef.current) {
+      commentInputRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [quoteText, replyParentId]);
 
   // 点击引用滚动高亮
   const handleQuoteClick = useCallback((start, end) => {
@@ -287,7 +294,7 @@ export default function ThoughtCard({
 
       {/* 引用/回复输入框 */}
       {(quoteText || replyParentId) && (
-        <div className="mt-4">
+        <div ref={commentInputRef} className="mt-4">
           <CommentInput
             questionId={questionId}
             thoughtId={currentThoughtId}

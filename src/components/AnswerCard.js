@@ -29,8 +29,6 @@ export default function AnswerCard({
   const [showForm, setShowForm] = useState(false);
   const [formMotivation, setFormMotivation] = useState('');
   const [formContent, setFormContent] = useState('');
-  const [foldState, setFoldState] = useState({});
-  const toggleFold = useCallback((contId) => { setFoldState(prev => ({ ...prev, [contId]: !prev[contId] })); }, []);
   const [focusPath, setFocusPath] = useState([]);
   const addFocus = useCallback((contId, ancestors) => { setFocusPath([...ancestors, contId]); }, []);
   const removeFocus = useCallback((contId) => { setFocusPath(prev => { const idx = prev.indexOf(contId); return idx === -1 ? prev : prev.slice(0, idx); }); }, []);
@@ -379,7 +377,7 @@ export default function AnswerCard({
         {ans.continuations && ans.continuations.length > 0 && (
           <ul style={{ paddingLeft: 0, marginTop: 12 }}>
             {ans.continuations.map((cont) => (
-              <ContinuationNode key={cont.id} cont={cont} depth={0} ancestorIds={[]} parentContent={ans.content} foldState={foldState} toggleFold={toggleFold}
+              <ContinuationNode key={cont.id} cont={cont} depth={0} ancestorIds={[]} parentContent={ans.content}
                 cutTarget={cutTarget} showForm={showForm} formMotivation={formMotivation} formContent={formContent}
                 onFormMotivationChange={setFormMotivation} onFormContentChange={setFormContent}
                 onSubmitForm={handleSubmitForm} onCancelForm={handleCancelForm} exerciseId={exerciseId} answerId={ans.id}

@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { useAuth } from '@/context/AuthContext';
 import { normalizeLikedBy } from '@/lib/likedBy';
 import AuthorLink from '@/components/AuthorLink';
 
@@ -28,6 +29,7 @@ export default function CommentTree({ comments, depth = 0, questionId, thoughtId
 }
 
 function CommentItem({ comment, depth, questionId, thoughtId, onReply, onQuoteClick, onDelete, onCommentLike, currentUser, deleteComment }) {
+  const { requireLogin } = useAuth();
   const isDeleted = comment.author === '[已删除]';
   const [likes, setLikes] = useState(comment.likes || 0);
   const [liked, setLiked] = useState(() => (
@@ -57,6 +59,7 @@ function CommentItem({ comment, depth, questionId, thoughtId, onReply, onQuoteCl
   };
 
   const handleLike = async () => {
+    if (!requireLogin()) return;
     if (loading || isDeleted) return;
     setLoading(true);
     const wasLiked = liked;

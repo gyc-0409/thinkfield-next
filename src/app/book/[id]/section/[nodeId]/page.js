@@ -33,7 +33,6 @@ function SectionContent() {
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState('');
 
-  const [tocGlow, setTocGlow] = useState(false);
   const [loadError, setLoadError] = useState(null);
   const [sidebarWidth, setSidebarWidth] = useState(288);
   const resizingRef = useRef(false);
@@ -84,11 +83,6 @@ function SectionContent() {
       document.documentElement.style.overflow = '';
       document.body.style.overflow = '';
     };
-  }, []);
-
-  useEffect(() => {
-    const clicked = localStorage.getItem('thinkfield-toc-clicked');
-    if (!clicked) setTocGlow(true);
   }, []);
 
   useEffect(() => {
@@ -247,13 +241,14 @@ function SectionContent() {
   };
 
   const handleTocClick = () => {
-    localStorage.setItem('thinkfield-toc-clicked', '1');
-    setTocGlow(false);
     setShowChapterPanel(true);
   };
 
   const sectionTitle = nodePath.length > 0 ? nodePath[nodePath.length - 1].title : (currentNode?.title || '未知小节');
   const showPreview = book?.type !== 'literature';
+  const locationPlaceholder = book?.type === 'literature'
+    ? '本页中的具体位置（必填）。例如：第二段第三行「人生若只如初见」'
+    : '本页中的具体位置（必填）。例如：定理2.1的证明中「由极限定义可知...」';
 
   return (
     <div className="fixed inset-0 z-10 flex overflow-hidden bg-white">
@@ -297,7 +292,7 @@ function SectionContent() {
             <div className="border-b border-gray-200">
               <button
                 onClick={() => { handleTocClick(); setSidebarOpen(false); }}
-                className={`w-full flex items-center gap-2 px-4 py-3 text-sm text-gray-800 hover:bg-gray-50 border-b border-gray-100 ${tocGlow ? 'btn-glow' : ''}`}
+                className="w-full flex items-center gap-2 px-4 py-3 text-sm text-gray-800 hover:bg-gray-50 border-b border-gray-100"
               >
                 <svg className="w-4 h-4 text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M4 19.5A2.5 2.5 0 016.5 17H20M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z" />
@@ -391,7 +386,7 @@ function SectionContent() {
           <div className="border-b border-gray-200 flex-shrink-0">
             <button
               onClick={handleTocClick}
-              className={`w-full flex items-center gap-2 px-4 py-3 text-sm text-gray-800 hover:bg-gray-50 border-b border-gray-100 transition-colors ${tocGlow ? 'btn-glow' : ''}`}
+              className="w-full flex items-center gap-2 px-4 py-3 text-sm text-gray-800 hover:bg-gray-50 border-b border-gray-100 transition-colors"
             >
               <svg className="w-4 h-4 text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M4 19.5A2.5 2.5 0 016.5 17H20M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z" />
@@ -495,7 +490,7 @@ function SectionContent() {
             <LatexPreviewGroup
               value={location}
               onChange={e => setLocation(e.target.value)}
-              placeholder={'本页中的具体位置（必填）。例如：定理2.1的证明中\u201C由极限定义可知...\u201D'}
+              placeholder={locationPlaceholder}
               rows={2}
               showPreview={showPreview}
             />

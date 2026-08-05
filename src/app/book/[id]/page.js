@@ -31,13 +31,23 @@ export default function BookEntryPage() {
     router.push(`/book/${bookId}/section/${leafNode.id}`);
   };
 
+  const handleClose = () => {
+    setShowModal(false);
+    router.back();
+  };
+
   return (
     <>
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex items-center justify-center p-2 sm:p-4">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-lg max-h-[90vh] sm:max-h-[80vh] overflow-hidden relative mx-2 sm:mx-0 flex flex-col">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4">
+          <div
+            className="absolute inset-0"
+            style={{ backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }}
+            aria-hidden="true"
+          />
+          <div className="relative bg-white rounded-lg shadow-xl w-full max-w-lg max-h-[90vh] sm:max-h-[80vh] overflow-hidden mx-2 sm:mx-0 flex flex-col">
             <div className="sticky top-0 z-10 flex items-center justify-end bg-white px-3 pt-3 pb-1 flex-shrink-0">
-              <button onClick={() => router.push('/')} className="text-gray-400 hover:text-gray-600 text-2xl leading-none px-1" aria-label="关闭">&times;</button>
+              <button onClick={handleClose} className="text-gray-400 hover:text-gray-600 text-2xl leading-none px-1" aria-label="关闭">&times;</button>
             </div>
             <div className="p-4 sm:p-6 pt-1 overflow-y-auto flex-1 min-h-0">
               <h2 className="text-lg sm:text-xl font-medium mb-1">{book.title}</h2>

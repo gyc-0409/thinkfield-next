@@ -12,7 +12,11 @@ export default function AddBookModal({ onClose }) {
   const [bookType, setBookType] = useState('');
   const [title, setTitle] = useState('');
   const [author, setAuthor] = useState('');
+  const [translator, setTranslator] = useState('');
+  const [publisher, setPublisher] = useState('');
   const [edition, setEdition] = useState('');
+  const [publishYear, setPublishYear] = useState('');
+  const [isbn, setIsbn] = useState('');
   const [structureLevel, setStructureLevel] = useState(0);
   const [tree, setTree] = useState([]);
   const [submitting, setSubmitting] = useState(false);
@@ -37,8 +41,8 @@ export default function AddBookModal({ onClose }) {
   };
 
   const handleFormNext = () => {
-    if (!title.trim() || !author.trim() || !edition.trim()) {
-      setError('请填写完整信息');
+    if (!title.trim() || !author.trim() || !publisher.trim() || !edition.trim()) {
+      setError('请填写书名、作者、出版社和版本');
       return;
     }
     setError('');
@@ -62,7 +66,11 @@ export default function AddBookModal({ onClose }) {
       let body = {
         title: title.trim(),
         author: author.trim(),
+        translator: translator.trim(),
+        publisher: publisher.trim(),
         edition: edition.trim(),
+        publishYear: publishYear.trim(),
+        isbn: isbn.trim(),
         type: isAdmin ? bookType : 'science',
       };
       if (isAdmin && !skipStructure) {
@@ -88,7 +96,11 @@ export default function AddBookModal({ onClose }) {
     setBookType('');
     setTitle('');
     setAuthor('');
+    setTranslator('');
+    setPublisher('');
     setEdition('');
+    setPublishYear('');
+    setIsbn('');
     setStructureLevel(0);
     setTree([]);
     setMessage('');
@@ -139,14 +151,19 @@ export default function AddBookModal({ onClose }) {
             <h2 className="text-xl font-medium text-gray-800 mb-4">添加新书籍</h2>
             {error && <p className="text-red-500 text-sm mb-3">{error}</p>}
             <div className="space-y-3">
-               书名
-              <input value={title} onChange={e => setTitle(e.target.value)} placeholder="书名"
+              <input value={title} onChange={e => setTitle(e.target.value)} placeholder="书名 *"
                 className="w-full border border-gray-200 p-2.5 rounded-md text-sm focus:outline-none focus:border-gray-400 placeholder:text-gray-400" />
-               作者
-              <input value={author} onChange={e => setAuthor(e.target.value)} placeholder="作者"
+              <input value={author} onChange={e => setAuthor(e.target.value)} placeholder="作者 *"
                 className="w-full border border-gray-200 p-2.5 rounded-md text-sm focus:outline-none focus:border-gray-400 placeholder:text-gray-400" />
-               版本
-              <input value={edition} onChange={e => setEdition(e.target.value)} placeholder="版本"
+              <input value={translator} onChange={e => setTranslator(e.target.value)} placeholder="译者（仅翻译类书籍需填写）"
+                className="w-full border border-gray-200 p-2.5 rounded-md text-sm focus:outline-none focus:border-gray-400 placeholder:text-gray-400" />
+              <input value={publisher} onChange={e => setPublisher(e.target.value)} placeholder="出版社 *"
+                className="w-full border border-gray-200 p-2.5 rounded-md text-sm focus:outline-none focus:border-gray-400 placeholder:text-gray-400" />
+              <input value={edition} onChange={e => setEdition(e.target.value)} placeholder="版本 *"
+                className="w-full border border-gray-200 p-2.5 rounded-md text-sm focus:outline-none focus:border-gray-400 placeholder:text-gray-400" />
+              <input value={publishYear} onChange={e => setPublishYear(e.target.value)} placeholder="出版年份"
+                className="w-full border border-gray-200 p-2.5 rounded-md text-sm focus:outline-none focus:border-gray-400 placeholder:text-gray-400" />
+              <input value={isbn} onChange={e => setIsbn(e.target.value)} placeholder="ISBN"
                 className="w-full border border-gray-200 p-2.5 rounded-md text-sm focus:outline-none focus:border-gray-400 placeholder:text-gray-400" />
             </div>
             <button

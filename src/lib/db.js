@@ -70,6 +70,11 @@ async function ensureTables() {
     ALTER TABLE users ADD COLUMN IF NOT EXISTS certification_reviewed_at TIMESTAMPTZ;
     ALTER TABLE users ADD COLUMN IF NOT EXISTS certification_reviewed_by TEXT;
     ALTER TABLE users ADD COLUMN IF NOT EXISTS certification_reject_reason TEXT;
+    ALTER TABLE books ADD COLUMN IF NOT EXISTS edition TEXT;
+    ALTER TABLE books ADD COLUMN IF NOT EXISTS publisher TEXT;
+    ALTER TABLE books ADD COLUMN IF NOT EXISTS isbn TEXT;
+    ALTER TABLE books ADD COLUMN IF NOT EXISTS translator TEXT;
+    ALTER TABLE books ADD COLUMN IF NOT EXISTS publish_year TEXT;
   `);
 }
 ensureTables().catch(err => console.error('[DB] 建表失败:', err.message));

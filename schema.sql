@@ -34,7 +34,12 @@ CREATE TABLE IF NOT EXISTS books (
   type TEXT DEFAULT 'science',
   tree JSONB DEFAULT '[]',
   chapters JSONB,
-  sections JSONB
+  sections JSONB,
+  edition TEXT,
+  publisher TEXT,
+  isbn TEXT,
+  translator TEXT,
+  publish_year TEXT
 );
 
 CREATE TABLE IF NOT EXISTS questions (

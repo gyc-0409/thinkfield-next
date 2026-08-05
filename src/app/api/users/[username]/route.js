@@ -240,6 +240,24 @@ export async function GET(_request, { params }) {
         [username]
       );
       payload.continueBooks = booksResult.rows;
+
+      const requestsResult = await pool.query(
+        `SELECT id, title, status, book_id, reject_reason, created_at, handled_at
+         FROM book_requests
+         WHERE username = $1
+         ORDER BY created_at DESC
+         LIMIT 50`,
+        [username]
+      );
+      payload.bookRequests = requestsResult.rows.map((row) => ({
+        id: row.id,
+        title: row.title,
+        status: row.status,
+        bookId: row.book_id || null,
+        rejectReason: row.reject_reason || '',
+        createdAt: row.created_at,
+        handledAt: row.handled_at || null,
+      }));
     }
 
     return NextResponse.json(payload);

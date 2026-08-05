@@ -290,7 +290,7 @@ export default function AddBookModal({ onClose }) {
           <div>
             <h2 className="text-xl font-medium text-gray-800 mb-2">上传目录图片（可选）</h2>
             <p className="text-sm text-gray-500 mb-4">
-              申请已提交。如有需要，可上传书籍目录页照片（最多 {MAX_CATALOG_IMAGES} 张，每张约 200–500 KB），将发送至管理员邮箱。
+              申请已提交，可在个人主页查看审核进度。如有需要，可上传书籍目录页照片（最多 {MAX_CATALOG_IMAGES} 张，每张约 200–500 KB），将发送至管理员邮箱。
             </p>
             {error && <p className="text-red-500 text-sm mb-3">{error}</p>}
 

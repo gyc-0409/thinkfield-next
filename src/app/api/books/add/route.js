@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
 import { getCurrentUser, assertNotBanned, serverError } from '@/lib/auth';
-import { createNotification } from '@/lib/notifications';
+import { findDuplicateRequest } from '@/lib/bookRequests';
 
 export async function POST(request) {
   const currentUser = await getCurrentUser();
@@ -42,26 +42,36 @@ export async function POST(request) {
     const isAdmin = userRes.rows[0]?.role === 'admin';
 
     if (!isAdmin) {
-      const detailParts = [
-        `作者：${bookMeta.author}`,
-        bookMeta.translator && `译者：${bookMeta.translator}`,
-        `出版社：${bookMeta.publisher}`,
-        `版本：${bookMeta.edition}`,
-        bookMeta.publishYear && `出版年份：${bookMeta.publishYear}`,
-        bookMeta.isbn && `ISBN：${bookMeta.isbn}`,
-      ].filter(Boolean);
-
-      const admins = await pool.query("SELECT username FROM users WHERE role = 'admin'");
-      for (const admin of admins.rows) {
-        await createNotification(
-          admin.username,
-          'book_request',
-          `用户 ${currentUser} 申请添加书籍《${bookMeta.title}》（${detailParts.join('，')}）`,
-          null,
-          'book_request'
-        );
+      const duplicate = await findDuplicateRequest(currentUser, bookMeta.title);
+      if (duplicate) {
+        if (duplicate.status === 'pending') {
+          return NextResponse.json({ error: '该书已有审核中的申请，请勿重复提交' }, { status: 409 });
+        }
+        return NextResponse.json({ error: '该书申请已通过，无需重复提交' }, { status: 409 });
       }
-      return NextResponse.json({ success: true, message: '申请已提交，管理员会尽快处理。' });
+
+      const insert = await pool.query(
+        `INSERT INTO book_requests (
+          username, title, author, translator, publisher, edition, publish_year, isbn
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        RETURNING id`,
+        [
+          currentUser,
+          bookMeta.title,
+          bookMeta.author,
+          bookMeta.translator,
+          bookMeta.publisher,
+          bookMeta.edition,
+          bookMeta.publishYear,
+          bookMeta.isbn,
+        ]
+      );
+
+      return NextResponse.json({
+        success: true,
+        requestId: insert.rows[0].id,
+        message: '申请已提交，可在个人主页查看审核进度。',
+      });
     }
 
     const id = 'book-' + Date.now();
@@ -89,6 +99,9 @@ export async function POST(request) {
 
     return NextResponse.json({ id, title: bookMeta.title, author: bookMeta.author, hidden: true, message: '书籍已创建' });
   } catch (e) {
-    return serverError(e, 'books add POST');
+    if (e.code === '23505') {
+      return NextResponse.json({ error: '该书已有审核中的申请，请勿重复提交' }, { status: 409 });
+    }
+    return serverError(e, 'books/add POST');
   }
 }

@@ -21,6 +21,20 @@ function certEntryLabel(status) {
   return '去学生认证';
 }
 
+function bookRequestStatusLabel(status) {
+  if (status === 'pending') return '审核中';
+  if (status === 'approved') return '已通过';
+  if (status === 'rejected') return '未通过';
+  return status;
+}
+
+function bookRequestStatusClass(status) {
+  if (status === 'pending') return 'bg-yellow-100 text-yellow-700';
+  if (status === 'approved') return 'bg-emerald-50 text-emerald-700';
+  if (status === 'rejected') return 'bg-gray-100 text-gray-600';
+  return 'bg-gray-100 text-gray-500';
+}
+
 export default function ProfileClient({ username }) {
   const router = useRouter();
   const { user } = useAuth();
@@ -140,6 +154,47 @@ export default function ProfileClient({ username }) {
           <section className="mb-10">
             <h2 className="text-base font-medium text-gray-800 mb-4">继续讨论</h2>
             <UserBooksGrid books={data.continueBooks} />
+          </section>
+        )}
+
+        {isSelf && Array.isArray(data.bookRequests) && (
+          <section className="mb-10">
+            <h2 className="text-base font-medium text-gray-800 mb-4">书籍申请</h2>
+            {data.bookRequests.length === 0 ? (
+              <p className="text-sm text-gray-400">暂无书籍申请</p>
+            ) : (
+              <ul className="space-y-3">
+                {data.bookRequests.map((req) => (
+                  <li
+                    key={req.id}
+                    className="bg-white border border-gray-200 rounded-lg px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2"
+                  >
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-gray-800 truncate">《{req.title}》</p>
+                      <p className="text-xs text-gray-400 mt-0.5">
+                        {new Date(req.createdAt).toLocaleDateString('zh-CN')}
+                      </p>
+                      {req.status === 'rejected' && req.rejectReason && (
+                        <p className="text-xs text-gray-500 mt-1">原因：{req.rejectReason}</p>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <span className={`text-xs px-2 py-0.5 rounded ${bookRequestStatusClass(req.status)}`}>
+                        {bookRequestStatusLabel(req.status)}
+                      </span>
+                      {req.status === 'approved' && req.bookId && (
+                        <Link
+                          href={`/book/${req.bookId}`}
+                          className="text-xs text-gray-700 underline underline-offset-2 hover:text-gray-900"
+                        >
+                          进入
+                        </Link>
+                      )}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
           </section>
         )}
 

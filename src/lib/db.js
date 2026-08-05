@@ -58,6 +58,28 @@ async function ensureTables() {
       is_read BOOLEAN DEFAULT false,
       created_at TIMESTAMPTZ DEFAULT NOW()
     );
+    CREATE TABLE IF NOT EXISTS book_requests (
+      id SERIAL PRIMARY KEY,
+      username TEXT NOT NULL,
+      title TEXT NOT NULL,
+      author TEXT NOT NULL,
+      translator TEXT DEFAULT '',
+      publisher TEXT NOT NULL,
+      edition TEXT NOT NULL,
+      publish_year TEXT DEFAULT '',
+      isbn TEXT DEFAULT '',
+      status TEXT DEFAULT 'pending',
+      book_id TEXT,
+      reject_reason TEXT,
+      handled_by TEXT,
+      handled_at TIMESTAMPTZ,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    );
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_book_requests_pending_unique
+      ON book_requests (username, lower(trim(title)))
+      WHERE status = 'pending';
+    CREATE INDEX IF NOT EXISTS idx_book_requests_username ON book_requests(username);
+    CREATE INDEX IF NOT EXISTS idx_book_requests_status ON book_requests(status);
   `);
 
   // 学生认证字段（幂等迁移）

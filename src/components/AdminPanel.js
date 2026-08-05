@@ -12,6 +12,7 @@ export default function AdminPanel({ onClose }) {
 
   const [bookRequests, setBookRequests] = useState([]);
   const [loadingRequests, setLoadingRequests] = useState(false);
+  const [bookIdInputs, setBookIdInputs] = useState({});
 
   const [certifications, setCertifications] = useState([]);
   const [loadingCerts, setLoadingCerts] = useState(false);
@@ -37,7 +38,7 @@ export default function AdminPanel({ onClose }) {
   const loadBookRequests = async () => {
     setLoadingRequests(true);
     try {
-      const res = await fetch('/api/notifications?type=book_request');
+      const res = await fetch('/api/admin/book-requests');
       if (!res.ok) throw new Error('加载失败');
       const data = await res.json();
       setBookRequests(data);
@@ -126,18 +127,42 @@ export default function AdminPanel({ onClose }) {
     } catch (e) { setRoleMsg(e.message); }
   };
 
-  const handleApproveBook = async (notificationId) => {
-    if (!confirm('确认同意该书籍申请并自动创建书籍？')) return;
+  const handleApproveRequest = async (requestId) => {
+    const bookId = (bookIdInputs[requestId] || '').trim();
+    if (!bookId) return alert('请填写已创建的书籍 ID');
+    if (!confirm('确认标记该申请为已通过？')) return;
     try {
-      const res = await fetch('/api/admin/approve-book', {
-        method: 'POST',
+      const res = await fetch(`/api/admin/book-requests/${requestId}`, {
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ notificationId }),
+        body: JSON.stringify({ action: 'approve', bookId }),
       });
       if (!res.ok) throw new Error((await res.json()).error);
-      alert('书籍已创建');
+      alert('已标记通过');
       loadBookRequests();
     } catch (e) { alert(e.message); }
+  };
+
+  const handleRejectRequest = async (requestId) => {
+    const reason = window.prompt('拒绝原因（可选）', '') || '';
+    if (!confirm('确认拒绝该书籍申请？')) return;
+    try {
+      const res = await fetch(`/api/admin/book-requests/${requestId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'reject', reason }),
+      });
+      if (!res.ok) throw new Error((await res.json()).error);
+      alert('已拒绝');
+      loadBookRequests();
+    } catch (e) { alert(e.message); }
+  };
+
+  const requestStatusLabel = (s) => {
+    if (s === 'pending') return '待处理';
+    if (s === 'approved') return '已通过';
+    if (s === 'rejected') return '已拒绝';
+    return s;
   };
 
   const handleCertAction = async (username, action) => {
@@ -261,22 +286,72 @@ export default function AdminPanel({ onClose }) {
 
         {tab === 'book-requests' && (
           <div>
-            <h3 className="font-medium mb-3">书籍申请</h3>
+            <h3 className="font-medium mb-2">书籍申请</h3>
+            <p className="text-xs text-gray-500 mb-4">
+              请先在「添加书籍」中手动创建书籍并录入目录，再在此填写书籍 ID 标记通过。
+            </p>
             {loadingRequests ? (
               <LoadingDots />
             ) : bookRequests.length === 0 ? (
-              <p className="text-gray-500 text-sm">暂无待处理的书籍申请</p>
+              <p className="text-gray-500 text-sm">暂无书籍申请</p>
             ) : (
-              <div className="space-y-3">
-                {bookRequests.map(n => (
-                  <div key={n.id} className="border border-gray-200 rounded-lg p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-                    <p className="text-sm text-gray-700">{n.message}</p>
-                    <button
-                      onClick={() => handleApproveBook(n.id)}
-                      className="bg-gray-800 text-white px-3 py-1 rounded text-sm hover:bg-gray-900 whitespace-nowrap"
-                    >
-                      同意创建
-                    </button>
+              <div className="space-y-4">
+                {bookRequests.map((req) => (
+                  <div key={req.id} className="border border-gray-200 rounded-lg p-4">
+                    <div className="flex justify-between items-start gap-2 mb-2">
+                      <div>
+                        <p className="font-medium text-gray-800">《{req.title}》</p>
+                        <p className="text-xs text-gray-500 mt-0.5">申请人：{req.username}</p>
+                      </div>
+                      <span className={`text-xs px-2 py-0.5 rounded flex-shrink-0 ${
+                        req.status === 'pending' ? 'bg-yellow-100 text-yellow-700'
+                          : req.status === 'approved' ? 'bg-emerald-50 text-emerald-700'
+                            : 'bg-gray-100 text-gray-500'
+                      }`}>
+                        {requestStatusLabel(req.status)}
+                      </span>
+                    </div>
+                    <div className="text-sm text-gray-600 space-y-0.5 mb-3">
+                      <p>作者：{req.author}</p>
+                      {req.translator && <p>译者：{req.translator}</p>}
+                      <p>出版社：{req.publisher}</p>
+                      <p>版本：{req.edition}</p>
+                      {req.publishYear && <p>出版年份：{req.publishYear}</p>}
+                      {req.isbn && <p>ISBN：{req.isbn}</p>}
+                      {req.createdAt && (
+                        <p className="text-xs text-gray-400 pt-1">
+                          提交于 {new Date(req.createdAt).toLocaleString('zh-CN')}
+                        </p>
+                      )}
+                    </div>
+                    {req.status === 'approved' && req.bookId && (
+                      <p className="text-sm text-gray-600">书籍 ID：{req.bookId}</p>
+                    )}
+                    {req.status === 'rejected' && req.rejectReason && (
+                      <p className="text-sm text-gray-500">拒绝原因：{req.rejectReason}</p>
+                    )}
+                    {req.status === 'pending' && (
+                      <div className="flex flex-col sm:flex-row gap-2 mt-2">
+                        <input
+                          value={bookIdInputs[req.id] || ''}
+                          onChange={(e) => setBookIdInputs((prev) => ({ ...prev, [req.id]: e.target.value }))}
+                          placeholder="已创建的书籍 ID（如 book-1234567890）"
+                          className="flex-1 border border-gray-200 p-2 rounded text-sm placeholder:text-gray-400"
+                        />
+                        <button
+                          onClick={() => handleApproveRequest(req.id)}
+                          className="bg-gray-800 text-white px-3 py-2 rounded text-sm hover:bg-gray-900 whitespace-nowrap"
+                        >
+                          标记通过
+                        </button>
+                        <button
+                          onClick={() => handleRejectRequest(req.id)}
+                          className="bg-gray-100 text-gray-700 px-3 py-2 rounded text-sm border border-gray-200 hover:bg-gray-200 whitespace-nowrap"
+                        >
+                          拒绝
+                        </button>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>

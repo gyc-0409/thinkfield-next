@@ -209,9 +209,9 @@ async function insertQuestion(client, q) {
 
   if (q.threadComment) {
     await client.query(
-      `INSERT INTO comment_threads (question_id, thought_id, parent_id, author, content, likes)
-       VALUES ($1,$2,NULL,$3,$4,0)`,
-      [q.id, thought0.id, AUTHOR, q.threadComment]
+      `INSERT INTO comment_threads (id, question_id, thought_id, parent_id, author, content, quote_text, quote_start, quote_end)
+       VALUES ($1,$2,$3,NULL,$4,$5,'',0,0)`,
+      [`ct-demo-${q.id}`, q.id, thought0.id, AUTHOR, q.threadComment]
     );
   }
 }

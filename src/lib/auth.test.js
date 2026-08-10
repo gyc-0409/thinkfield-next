@@ -10,6 +10,8 @@ describe('auth', () => {
 
   afterEach(() => {
     delete process.env.SESSION_PASSWORD;
+    delete process.env.COOKIE_SECURE;
+    delete process.env.NODE_ENV;
   });
 
   it('throws when SESSION_PASSWORD is missing', async () => {
@@ -23,5 +25,12 @@ describe('auth', () => {
     expect(sessionOptions.cookieName).toBe('thinkfield-session');
     expect(sessionOptions.cookieOptions.httpOnly).toBe(true);
     expect(sessionOptions.cookieOptions.sameSite).toBe('lax');
+  });
+
+  it('disables secure cookies when COOKIE_SECURE=false', async () => {
+    process.env.NODE_ENV = 'production';
+    process.env.COOKIE_SECURE = 'false';
+    const { sessionOptions } = await import('@/lib/auth');
+    expect(sessionOptions.cookieOptions.secure).toBe(false);
   });
 });

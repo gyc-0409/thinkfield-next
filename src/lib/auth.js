@@ -11,11 +11,19 @@ if (!SESSION_PASSWORD) {
   );
 }
 
+// COOKIE_SECURE=false：允许 HTTP 下登录（备案前用 IP 访问）
+// 上 HTTPS 后改为 true，或删除该变量（生产默认 secure）
+function cookieSecure() {
+  if (process.env.COOKIE_SECURE === 'false') return false;
+  if (process.env.COOKIE_SECURE === 'true') return true;
+  return process.env.NODE_ENV === 'production';
+}
+
 export const sessionOptions = {
   password: SESSION_PASSWORD,
   cookieName: 'thinkfield-session',
   cookieOptions: {
-    secure: process.env.NODE_ENV === 'production',
+    secure: cookieSecure(),
     httpOnly: true,
     sameSite: 'lax',
   },

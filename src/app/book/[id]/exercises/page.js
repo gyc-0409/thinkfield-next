@@ -6,6 +6,7 @@ import ExerciseDetail from '@/components/ExerciseDetail';
 import ExerciseSidebarItem from '@/components/ExerciseSidebarItem';
 import LatexPreviewGroup from '@/components/LatexPreviewGroup';
 import LoadingDots from '@/components/LoadingDots';
+import ExportTexButton from '@/components/ExportTexButton';
 
 function ExercisesContent() {
   const { id: bookId } = useParams();
@@ -221,7 +222,8 @@ function ExercisesContent() {
               <span>返回讨论区</span>
             </button>
             <div className="p-4 border-b border-gray-200 flex items-center gap-2">
-              <h2 className="text-sm font-medium text-gray-800 flex-1">习题列表</h2>
+              <h2 className="text-sm font-medium text-gray-800 flex-1 truncate">{sectionTitle || '习题列表'}</h2>
+              {nodeId && <ExportTexButton mode="section" bookId={bookId} nodeId={nodeId} variant="icon" />}
               <button
                 onClick={() => setSidebarOpen(false)}
                 className="inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md border border-gray-300 bg-gray-100 text-gray-700 hover:bg-gray-200"
@@ -273,7 +275,8 @@ function ExercisesContent() {
             <span>返回讨论区</span>
           </button>
           <div className="p-4 border-b border-gray-200 flex items-center gap-2 flex-shrink-0">
-            <h2 className="text-sm font-medium text-gray-800 flex-1">习题列表</h2>
+            <h2 className="text-sm font-medium text-gray-800 flex-1 truncate">{sectionTitle || '习题列表'}</h2>
+            {nodeId && <ExportTexButton mode="section" bookId={bookId} nodeId={nodeId} variant="icon" />}
             <button
               onClick={() => setSidebarOpen(false)}
               className="inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md border border-gray-300 bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
@@ -315,7 +318,7 @@ function ExercisesContent() {
           />
         </div>
       ) : (
-        <div className="hidden md:flex w-12 flex-shrink-0 border-r border-gray-200 bg-white pt-3 justify-center">
+        <div className="hidden md:flex w-12 flex-shrink-0 border-r border-gray-200 bg-white pt-3 flex-col items-center gap-2">
           <button
             onClick={() => setSidebarOpen(true)}
             className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-gray-300 bg-white text-gray-700 shadow-sm hover:bg-gray-50 transition-colors"
@@ -325,6 +328,7 @@ function ExercisesContent() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M13 5l7 7-7 7M6 5l7 7-7 7" />
             </svg>
           </button>
+          {nodeId && <ExportTexButton mode="section" bookId={bookId} nodeId={nodeId} variant="icon" />}
         </div>
       )}
 

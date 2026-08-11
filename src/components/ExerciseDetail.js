@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import AnswerCard from '@/components/AnswerCard';
 import LoadingDots from '@/components/LoadingDots';
+import ExportTexButton from '@/components/ExportTexButton';
 import { renderLatexToHTML } from '@/lib/renderLatex';
 import useSWR from 'swr';
 import { fetcher } from '@/lib/fetcher';
@@ -78,7 +79,10 @@ export default function ExerciseDetail({ exerciseId, bookType }) {
 
   return (
     <div>
-      <h2 className="text-lg font-medium text-gray-800 mb-1" dangerouslySetInnerHTML={{ __html: renderLatexToHTML(exercise.title) }} />
+      <div className="flex items-start justify-between gap-3 mb-1">
+        <h2 className="text-lg font-medium text-gray-800 flex-1 min-w-0" dangerouslySetInnerHTML={{ __html: renderLatexToHTML(exercise.title) }} />
+        <ExportTexButton mode="exercise" exerciseId={exerciseId} className="mt-0.5" />
+      </div>
       {exercise.content && (
         <p className="text-sm text-gray-500 mb-4 md:mb-6" dangerouslySetInnerHTML={{ __html: renderLatexToHTML(exercise.content) }} />
       )}

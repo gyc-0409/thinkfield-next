@@ -4,6 +4,7 @@ import { useParams, useRouter } from 'next/navigation';
 import ThoughtCard from '@/components/ThoughtCard';
 import CommentTree from '@/components/CommentTree';
 import CommentInput from '@/components/CommentInput';
+import ExportTexButton from '@/components/ExportTexButton';
 import { useAuth } from '@/context/AuthContext';
 import { applyLikeState, mapCommentTree } from '@/lib/likedBy';
 
@@ -118,9 +119,18 @@ export default function QuestionDetailPage() {
       {/* 问题框 */}
       {question.type === 'question' && (
         <div className="border-l-4 border-red-500 bg-red-50 p-4 rounded mb-4">
-          <h3 className="font-bold">问题</h3>
+          <div className="flex items-start justify-between gap-3 mb-1">
+            <h3 className="font-bold">问题</h3>
+            <ExportTexButton mode="question" questionId={questionId} />
+          </div>
           <p className="text-gray-600 text-sm">提问者：{question.author}</p>
           <p className="mt-2">{question.title}</p>
+        </div>
+      )}
+
+      {question.type !== 'question' && (
+        <div className="flex justify-end mb-3">
+          <ExportTexButton mode="question" questionId={questionId} />
         </div>
       )}
 

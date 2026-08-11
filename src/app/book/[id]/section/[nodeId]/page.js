@@ -7,6 +7,7 @@ import BookTree from '@/components/BookTree';
 import LatexPreviewGroup from '@/components/LatexPreviewGroup';
 import { renderLatexToHTML } from '@/lib/renderLatex';
 import AuthorLink from '@/components/AuthorLink';
+import ExportTexButton from '@/components/ExportTexButton';
 
 function SectionContent() {
   const { id: bookId, nodeId } = useParams();
@@ -283,6 +284,7 @@ function SectionContent() {
             </button>
             <div className="p-4 border-b border-gray-200 flex items-center gap-2">
               <h2 className="text-sm font-medium text-gray-800 truncate flex-1">{sectionTitle}</h2>
+              <ExportTexButton mode="section" bookId={bookId} nodeId={nodeId} variant="icon" />
               <button onClick={() => setSidebarOpen(false)} className="inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md border border-gray-300 bg-gray-100 text-gray-700 hover:bg-gray-200" title="收起边栏">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M11 19l-7-7 7-7M18 19l-7-7 7-7" />
@@ -373,6 +375,7 @@ function SectionContent() {
           </button>
           <div className="p-4 border-b border-gray-200 flex items-center gap-2 flex-shrink-0">
             <h2 className="text-sm font-medium text-gray-800 truncate flex-1">{sectionTitle}</h2>
+            <ExportTexButton mode="section" bookId={bookId} nodeId={nodeId} variant="icon" />
             <button
               onClick={() => setSidebarOpen(false)}
               className="inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md border border-gray-300 bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
@@ -456,7 +459,7 @@ function SectionContent() {
           />
         </div>
       ) : (
-        <div className="hidden md:flex w-12 flex-shrink-0 border-r border-gray-200 bg-white pt-3 justify-center">
+        <div className="hidden md:flex w-12 flex-shrink-0 border-r border-gray-200 bg-white pt-3 flex-col items-center gap-2">
           <button
             onClick={() => setSidebarOpen(true)}
             className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-gray-300 bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
@@ -466,6 +469,7 @@ function SectionContent() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M13 5l7 7-7 7M6 5l7 7-7 7" />
             </svg>
           </button>
+          <ExportTexButton mode="section" bookId={bookId} nodeId={nodeId} variant="icon" />
         </div>
       )}
 
